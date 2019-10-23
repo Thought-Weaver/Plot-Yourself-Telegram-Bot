@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 import telegram
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import Updater, CommandHandler, PicklePersistence
 from telegram.error import TelegramError
 import logging
 
@@ -15,6 +15,7 @@ with open("api_key.txt", 'r') as f:
 
 PORT = int(os.environ.get('PORT', '8443'))
 
+
 def createplot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user_id = update.message.from_user.id
@@ -23,7 +24,7 @@ def createplot_handler(bot, update, chat_data, args):
         # Need a name
         pass
 
-    if len(args) > 7:
+    if len(args) > 9:
         # Can't do this!
         pass
 
@@ -38,21 +39,28 @@ def createplot_handler(bot, update, chat_data, args):
     # Args for plot definition (all are optional, except name in the current version):
     # We'll have _ be a blank.
     # (1) name
-    # (2) x-axis title
-    # (3) y-axis title
-    # (4) min x value
-    # (5) max x value
-    # (6) min y value
-    # (7) max y value
+    # (2) x-axis right title
+    # (3) x-axis left title
+    # (4) y-axis top title
+    # (5) y-axis bottom title
+    # (6) min x value
+    # (7) max x value
+    # (8) min y value
+    # (9) max y value
 
-    plot_args = args + [None for i in range(7 - len(args))]
+    plot_args = [None for i in range(9)]
+    for i in range(len(args)):
+        plot_args[i] = None if args[i] == '_' else args[i]
+
     plot = Plot(plot_args[0],
                 plot_args[1],
                 plot_args[2],
                 plot_args[3],
                 plot_args[4],
                 plot_args[5],
-                plot_args[6])
+                plot_args[6],
+                plot_args[7],
+                plot_args[8])
     chat_data[args[0]] = plot
 
     # Ideally, we'll be able to save the entire
@@ -63,11 +71,14 @@ def createplot_handler(bot, update, chat_data, args):
 def removeplot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
 
+
 def plotme_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
 
+
 def removeme_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
+
 
 def handle_error(bot, update, error):
     try:
@@ -75,12 +86,15 @@ def handle_error(bot, update, error):
     except TelegramError:
         logging.getLogger(__name__).warning('Telegram Error! %s caused by this update: %s', error, update)
 
+
 if __name__ == "__main__":
+    pp = PicklePersistence(filename="plotyourselfbot")
     bot = telegram.Bot(token=TOKEN)
-    updater = Updater(token=TOKEN)
+    updater = Updater(token=TOKEN, persistence=pp, use_context=True)
     dispatcher = updater.dispatcher
 
     create_plot_aliases = ["createplot", "cp"]
+    load_plots_aliases = ["loadplots", "lp"]
     commands = [("createplot", 1, create_plot_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]

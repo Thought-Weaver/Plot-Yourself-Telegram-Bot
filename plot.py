@@ -16,11 +16,17 @@ bot = telegram.Bot(token=TOKEN)
 
 # I think it might be more elegant to return non-null and return strings with error text if need be.
 
+# https://www.science-emergence.com/Articles/How-to-put-the-origin-in-the-center-of-the-figure-with-matplotlib-/
+# https://pythonspot.com/matplotlib-scatterplot/
+# https://stackoverflow.com/questions/51113062/how-to-receive-images-from-telegram-bot
+
 class Plot:
-    def __init__(self, name, xaxis, yaxis, minx, maxx, miny, maxy):
+    def __init__(self, name, xaxisleft, xaxisright, yaxisbottom, yaxistop, minx, maxx, miny, maxy):
         self.__name = name
-        self.__xaxis = xaxis
-        self.__yaxis = yaxis
+        self.__xaxisleft = xaxisleft
+        self.__xaxisright = xaxisright
+        self.__yaxisbottom = yaxisbottom
+        self.__yaxistop = yaxistop
         self.__minx = minx
         self.__maxx = maxx
         self.__miny = miny
@@ -36,11 +42,17 @@ class Plot:
     def get_name(self):
         return self.__name
 
-    def get_xaxis(self):
-        return self.__xaxis
+    def get_xaxisleft(self):
+        return self.__xaxisleft
 
-    def get_yaxis(self):
-        return self.__xaxis
+    def get_xaxisright(self):
+        return self.__xaxisright
+
+    def get_yaxisbottom(self):
+        return self.__yaxisbottom
+
+    def get_yaxistop(self):
+        return self.__yaxistop
 
     def get_minx(self):
         return self.__minx
