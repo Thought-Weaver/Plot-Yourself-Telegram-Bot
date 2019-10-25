@@ -5,6 +5,10 @@ from matplotlib import pyplot as plt
 from colorhash import ColorHash
 from io import BytesIO
 
+import numpy as np
+import pandas as pd
+from sympy import S, symbols, printing
+
 import telegram
 from telegram.error import TelegramError
 
@@ -73,8 +77,8 @@ class Plot:
                   for color_hash in [ColorHash(label).rgb for label in labels]]
 
         fig = plt.figure()
-        plt.scatter(X, Y, c=colors)
         plt.grid(True)
+        plt.scatter(X, Y, c=colors)
         plt.axhline(y=0, color='k')
         plt.axvline(x=0, color='k')
 
@@ -83,17 +87,17 @@ class Plot:
 
         if self.__xaxisleft is not None and self.__xaxisright is not None:
             plt.xlabel("<-- " + str(self.__xaxisright) + " || " + str(self.__xaxisleft) + " -->")
-        elif self.__xaxisleft is not None:
+        elif self.__xaxisright is None and self.__xaxisleft is not None:
             plt.xlabel(str(self.__xaxisleft))
-        elif self.__xaxisright is not None:
+        elif self.__xaxisleft is None and self.__xaxisright is not None:
             plt.xlabel(str(self.__xaxisright))
 
         if self.__yaxistop is not None and self.__yaxisbottom is not None:
             plt.ylabel("<-- " + str(self.__yaxistop) + " || " + str(self.__yaxisbottom) + " -->")
-        elif self.__yaxistop is not None:
-            plt.xlabel(str(self.__yaxistop))
-        elif self.__yaxisbottom is not None:
-            plt.xlabel(str(self.__yaxisbottom))
+        elif self.__yaxisbottom is None and self.__yaxistop is not None:
+            plt.ylabel(str(self.__yaxistop))
+        elif self.__yaxistop is None and self.__yaxisbottom is not None:
+            plt.ylabel(str(self.__yaxisbottom))
 
         if self.__name is not None:
             plt.title(str(self.__name))
@@ -105,6 +109,71 @@ class Plot:
         # bot.send_photo(chat_id=chat_id, photo=buffer)
         # This returns the image itself that can then be sent.
         return 0, buffer
+
+    def generate_stats(self):
+        points_dict = { "Names" : pd.Series(np.asarray([p[0] for p in self.__points], dtype=str)),
+                        "X" : pd.Series(np.asarray([p[1] for p in self.__points], dtype=float)),
+                        "Y" : pd.Series(np.asarray([p[2] for p in self.__points], dtype=float)) }
+        return 0, pd.DataFrame(points_dict).describe()
+
+    def polyfit(self, deg):
+        if deg >= len(self.__points):
+            return 1, "Error: Degree cannot be greater than or equal to the number of points (" + str(len(self.__points)) + ")!"
+
+        X = [p[1] for p in self.__points]
+        Y = [p[2] for p in self.__points]
+        labels = [p[0] for p in self.__points]
+        colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
+                  for color_hash in [ColorHash(label).rgb for label in labels]]
+
+        for i in range(len(X)):
+            plt.annotate(labels[i], (X[i], Y[i]))
+
+            if self.__xaxisleft is not None and self.__xaxisright is not None:
+                plt.xlabel("<-- " + str(self.__xaxisright) + " || " + str(self.__xaxisleft) + " -->")
+            elif self.__xaxisright is None and self.__xaxisleft is not None:
+                plt.xlabel(str(self.__xaxisleft))
+            elif self.__xaxisleft is None and self.__xaxisright is not None:
+                plt.xlabel(str(self.__xaxisright))
+
+            if self.__yaxistop is not None and self.__yaxisbottom is not None:
+                plt.ylabel("<-- " + str(self.__yaxistop) + " || " + str(self.__yaxisbottom) + " -->")
+            elif self.__yaxisbottom is None and self.__yaxistop is not None:
+                plt.ylabel(str(self.__yaxistop))
+            elif self.__yaxistop is None and self.__yaxisbottom is not None:
+                plt.ylabel(str(self.__yaxisbottom))
+
+        if self.__name is not None:
+            plt.title(str(self.__name))
+
+        p = np.polyfit(X, Y, deg)
+        f = np.poly1d(p)
+
+        x_new = np.linspace(min(X), max(X), 10 * len(X))
+        y_new = f(x_new)
+
+        x = symbols("x")
+        poly = sum(S("{:6.2f}".format(v)) * x ** i for i, v in enumerate(p[::-1]))
+        eq_latex = printing.latex(poly)
+
+        fig = plt.figure()
+        plt.grid(True)
+        plt.scatter(X, Y, c=colors)
+        plt.axhline(y=0, color='k')
+        plt.axvline(x=0, color='k')
+        plt.plot(x_new, y_new, label="${}$".format(eq_latex))
+        plt.legend(fontsize="small")
+
+        buffer = BytesIO()
+        fig.savefig(buffer, format="png")
+        buffer.seek(0)
+
+        yhat = f(X)
+        ybar = np.sum(Y) / len(Y)
+        ssres = np.sum((Y - yhat) ** 2)
+        sstot = np.sum((Y - ybar) ** 2)
+
+        return 0, (buffer, 1 - ssres / sstot)
 
     def get_name(self):
         return self.__name

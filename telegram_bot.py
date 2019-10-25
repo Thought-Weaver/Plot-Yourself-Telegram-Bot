@@ -44,7 +44,7 @@ def static_handler(command):
 
 def create_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
-    username = update.message.from_user.username
+    username = update.message.from_user.username if update.message.from_user.username is not None else update.message.from_user.first_name + " " + update.message.from_user.last_name
 
     plot_args = vars(ARG_PARSER.parse_args(args))
 
@@ -72,11 +72,11 @@ def create_plot_handler(bot, update, chat_data, args):
     # (8) min y value
     # (9) max y value
 
-    plot = Plot(" ".join(plot_args.get("title", "")),
-                " ".join(plot_args.get("xright", "")),
-                " ".join(plot_args.get("xleft", "")),
-                " ".join(plot_args.get("ytop", "")),
-                " ".join(plot_args.get("ybottom", "")),
+    plot = Plot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
+                " ".join(plot_args.get("xright")) if plot_args.get("xright") is not None else None,
+                " ".join(plot_args.get("xleft")) if plot_args.get("xleft") is not None else None,
+                " ".join(plot_args.get("ytop")) if plot_args.get("ytop") is not None else None,
+                " ".join(plot_args.get("ybottom")) if plot_args.get("ybottom") is not None else None,
                 plot_args.get("minx"),
                 plot_args.get("maxx"),
                 plot_args.get("miny"),
@@ -111,7 +111,7 @@ def remove_plot_handler(bot, update, chat_data, args):
 
 def plot_me_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
-    username = update.message.from_user.username
+    username = update.message.from_user.username if update.message.from_user.username is not None else update.message.from_user.first_name + " " + update.message.from_user.last_name
 
     # Args are: plot_id, x, y
     if len(args) != 3:
@@ -120,8 +120,8 @@ def plot_me_handler(bot, update, chat_data, args):
 
     try:
         plot_id = int(args[0])
-        x = int(args[1])
-        y = int(args[2])
+        x = float(args[1])
+        y = float(args[2])
     except TypeError:
         send_message(bot, chat_id, "All input arguments must be integers!")
         return
@@ -155,7 +155,7 @@ def plot_me_handler(bot, update, chat_data, args):
 
 def remove_me_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
-    username = update.message.from_user.username
+    username = update.message.from_user.username if update.message.from_user.username is not None else update.message.from_user.first_name + " " + update.message.from_user.last_name
 
     # Args are: plot_id
     if len(args) != 1:
@@ -236,9 +236,62 @@ def list_plots_handler(bot, update, chat_data):
     send_message(bot, chat_id, text)
 
 
-def edit_plot_handler(bot, update, chat_data, args):
+def get_plot_stats_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
-    username = update.message.from_user.username
+
+    # Args are: plot_id
+    if len(args) != 1:
+        send_message(bot, chat_id, "usage: /plotstats {plot_id}")
+        return
+
+    try:
+        plot_id = int(args[0])
+    except TypeError:
+        send_message(bot, chat_id, "The plot ID must be a number!")
+        return
+
+    plot = chat_data.get(plot_id)
+
+    result = plot.generate_stats()
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        send_message(bot, chat_id, "Plot (" + str(plot_id) + ") Stats:\n\n" + str(result[1]))
+
+
+def polyfit_plot_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+
+    # Args are: plot_id
+    if len(args) < 1:
+        send_message(bot, chat_id, "usage: /polyfitplot {plot_id} {optional degree}")
+        return
+
+    try:
+        plot_id = int(args[0])
+        deg = 1 if len(args) != 2 else int(args[1])
+    except TypeError:
+        send_message(bot, chat_id, "The plot ID must be a number!")
+        return
+
+    plot = chat_data.get(plot_id)
+    result = plot.polyfit(deg)
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        bot.send_photo(chat_id=chat_id, photo=result[1][0])
+        send_message(bot, chat_id, "Plot (" + str(plot_id) +
+                                   ") R^2 (Deg <= " + str(deg) + "): " + str(result[1][1]))
 
 
 def handle_error(bot, update, error):
@@ -264,12 +317,16 @@ if __name__ == "__main__":
     remove_plot_aliases = ["removeplot", "rp"]
     show_plot_aliases = ["showplot", "sp"]
     list_plots_aliases = ["listplots", "lp"]
+    get_plot_stats_aliases = ["getplotstats", "plotstats", "ps"]
+    polyfit_plot_aliases = ["polyfitplot", "pp"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
                 ("remove_plot", 2, remove_plot_aliases),
                 ("show_plot", 2, show_plot_aliases),
-                ("list_plots", 1, list_plots_aliases)]
+                ("list_plots", 1, list_plots_aliases),
+                ("get_plot_stats", 2, get_plot_stats_aliases),
+                ("polyfit_plot", 2, polyfit_plot_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:
