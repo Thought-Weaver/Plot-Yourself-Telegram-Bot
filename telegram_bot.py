@@ -252,6 +252,10 @@ def get_plot_stats_handler(bot, update, chat_data, args):
 
     plot = chat_data.get(plot_id)
 
+    if plot is None:
+        send_message(bot, chat_id, "That is not a valid plot.")
+        return
+
     result = plot.generate_stats()
 
     if result is None:
@@ -280,6 +284,11 @@ def polyfit_plot_handler(bot, update, chat_data, args):
         return
 
     plot = chat_data.get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That is not a valid plot.")
+        return
+
     result = plot.polyfit(deg)
 
     if result is None:
@@ -290,8 +299,7 @@ def polyfit_plot_handler(bot, update, chat_data, args):
         return
     elif result[0] == 0:
         bot.send_photo(chat_id=chat_id, photo=result[1][0])
-        send_message(bot, chat_id, "Plot (" + str(plot_id) +
-                                   ") R^2 (Deg <= " + str(deg) + "): " + str(result[1][1]))
+        send_message(bot, chat_id, "Plot (" + str(plot_id) + ") R^2: " + str(result[1][1]))
 
 
 def handle_error(bot, update, error):
