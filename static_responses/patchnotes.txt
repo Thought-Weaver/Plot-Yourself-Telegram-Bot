@@ -13,6 +13,7 @@ New Features:
 -Added a new flag --custompoints when creating plots. This will permit the creator to plot custom points, allowing us to play Dildo Knife! If the flag is specified, the creator can plot custom points using /custompoint (/cp) {plot_id} {x} {y} {label}
 -Added commands to bot autosuggest list.
 -Updated /help with new commands.
+-Added a notification when removing a plot.
 
 Bug Fixes:
 
@@ -20,3 +21,4 @@ Bug Fixes:
 -Fixed a bug where check bounds would only check the x boundary.
 -Fixed catching ValueErrors when plot_ids are invalid.
 -Fixed a bug where invalid args would break the bot.
+-Fixed a bug where people other than the author could delete their plots.
