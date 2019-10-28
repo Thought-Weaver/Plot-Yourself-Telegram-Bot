@@ -106,6 +106,16 @@ def create_plot_handler(bot, update, chat_data, args):
 
 def remove_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
 
     if len(args) != 1:
         send_message(bot, chat_id, "usage: /removeplot {plot_id}")
@@ -123,7 +133,12 @@ def remove_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
+    if str(plot.get_creator()) != str(username):
+        send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
+        return
+
     del chat_data[plot_id]
+    send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been removed!")
 
 
 def plot_me_handler(bot, update, chat_data, args):
@@ -149,7 +164,7 @@ def plot_me_handler(bot, update, chat_data, args):
         x = float(args[1])
         y = float(args[2])
     except ValueError:
-        send_message(bot, chat_id, "All input arguments must be integers!")
+        send_message(bot, chat_id, "Plot ID must be an int and x, y must be floats!")
         return
 
     plot = chat_data.get(plot_id)
@@ -384,7 +399,7 @@ def custom_point_handler(bot, update, chat_data, args):
         y = float(args[2])
         label = str(args[3])
     except ValueError:
-        send_message(bot, chat_id, "All input arguments must be integers!")
+        send_message(bot, chat_id, "Plot ID must be an int and x, y must be floats.")
         return
 
     plot = chat_data.get(plot_id)
