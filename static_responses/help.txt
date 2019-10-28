@@ -1,15 +1,23 @@
 Here's a list of helpful commands for making plots.
 
-/createplot {title} {x_axis_right_label} {x_axis_left_label} {y_axis_top_label} {y_axis_bottom_label} {min_x_value} {max_x_value} {min_y_value} {max_y_value}
+/createplot {title} {x_axis_right_label} {x_axis_left_label} {y_axis_top_label} {y_axis_bottom_label} {min_x_value} {max_x_value} {min_y_value} {max_y_value} {--custompoints}
 /plotme {plot_id} {x} {y}
 /removeme {plot_id}
 /showplot {plot_id}
 /listplots
+/polyfitplot {plot_id} {degree}
+/plotstats {plot_id}
+/patchnotes
+/whomademe {plot_id}
+/custompoint {plot_id} {x} {y} {label}
 
-Note that all the arguments for /createplot are optional. Here are a couple of /createplot examples:
+Note that all the arguments for /createplot are optional. Also note that the default bounds on a plot are [-10, 10] on both axes. Here are a couple of /createplot examples:
 
-/createplot -t This is a test! -xr Right -xl Left -yt A Top in My Dabney House? -yb No suprise, a Bottom -mx -10 -Mx 10 -my -10 -My 10
+/createplot -t This is a test! -xr Right -xl Left -yt A Top in My Dabney House? -yb No suprise, a Bottom -mx -10 -Mx 10 -my -10 -My 10 --custompoints
 
 OR
 
 /createplot --title This is a test! --xright Right --xleft Left --ytop A Top in My Dabney House? --ybottom No suprise, a Bottom --minx -10 --maxx 10 --miny -10 --maxy 10
+
+The argument --custompoints is an optional flag to permit the creator plot custom named points on the plot using the
+command /custompoint {plot_id} {x} {y} {label}.

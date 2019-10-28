@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 from __future__ import unicode_literals
 
 import telegram
@@ -26,6 +27,7 @@ ARG_PARSER.add_argument("-mx", "--minx", type=int)
 ARG_PARSER.add_argument("-Mx", "--maxx", type=int)
 ARG_PARSER.add_argument("-my", "--miny", type=int)
 ARG_PARSER.add_argument("-My", "--maxy", type=int)
+ARG_PARSER.add_argument("--custompoints", action="store_true")
 
 def send_message(bot, chat_id, text):
     try:
@@ -44,14 +46,28 @@ def static_handler(command):
 
 def create_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
-    username = update.message.from_user.username if update.message.from_user.username is not None else update.message.from_user.first_name + " " + update.message.from_user.last_name
+    user = update.message.from_user
+    username = ""
 
-    plot_args = vars(ARG_PARSER.parse_args(args))
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
 
-    if len(plot_args.keys()) > 9:
+    try:
+        parsed = ARG_PARSER.parse_args(args)
+        plot_args = vars(parsed)
+    except SystemExit:
+        send_message(bot, chat_id, "That is not a valid argument list. See /help.")
+        return
+
+    if len(plot_args.keys()) > 10:
         send_message(bot, chat_id, "usage (all args optional): /createplot {title} {x_axis_right_label} "
                                    "{x_axis_left_label} {y_axis_top_label} {y_axis_bottom_label}"
-                                   "{min_x_value} {max_x_value} {min_y_value} {max_y_value}")
+                                   "{min_x_value} {max_x_value} {min_y_value} {max_y_value} {--custompoints}")
         return
 
     # I have two options as I see it:
@@ -77,11 +93,12 @@ def create_plot_handler(bot, update, chat_data, args):
                 " ".join(plot_args.get("xleft")) if plot_args.get("xleft") is not None else None,
                 " ".join(plot_args.get("ytop")) if plot_args.get("ytop") is not None else None,
                 " ".join(plot_args.get("ybottom")) if plot_args.get("ybottom") is not None else None,
-                plot_args.get("minx"),
-                plot_args.get("maxx"),
-                plot_args.get("miny"),
-                plot_args.get("maxy"),
-                username)
+                plot_args.get("minx") if plot_args.get("minx") is not None else -10,
+                plot_args.get("maxx") if plot_args.get("maxx") is not None else 10,
+                plot_args.get("miny") if plot_args.get("miny") is not None else -10,
+                plot_args.get("maxy") if plot_args.get("maxy") is not None else 10,
+                username,
+                plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
     chat_data[len(chat_data.keys()) + 1] = plot
 
     send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) + " (" + str(len(chat_data.keys())) + ") was created successfully!")
@@ -96,14 +113,14 @@ def remove_plot_handler(bot, update, chat_data, args):
 
     try:
         plot_id = int(args[0])
-    except TypeError:
+    except ValueError:
         send_message(bot, chat_id, "The plot ID must be a number!")
         return
 
     plot = chat_data.get(plot_id)
 
     if plot is None:
-        send_message(bot, chat_id, "That plot doesn't exist!")
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
     del chat_data[plot_id]
@@ -111,7 +128,16 @@ def remove_plot_handler(bot, update, chat_data, args):
 
 def plot_me_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
-    username = update.message.from_user.username if update.message.from_user.username is not None else update.message.from_user.first_name + " " + update.message.from_user.last_name
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
 
     # Args are: plot_id, x, y
     if len(args) != 3:
@@ -122,14 +148,14 @@ def plot_me_handler(bot, update, chat_data, args):
         plot_id = int(args[0])
         x = float(args[1])
         y = float(args[2])
-    except TypeError:
+    except ValueError:
         send_message(bot, chat_id, "All input arguments must be integers!")
         return
 
     plot = chat_data.get(plot_id)
 
     if plot is None:
-        send_message(bot, chat_id, "That plot doesn't exist!")
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
     result = plot.plot_point(username, x, y)
@@ -155,7 +181,16 @@ def plot_me_handler(bot, update, chat_data, args):
 
 def remove_me_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
-    username = update.message.from_user.username if update.message.from_user.username is not None else update.message.from_user.first_name + " " + update.message.from_user.last_name
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
 
     # Args are: plot_id
     if len(args) != 1:
@@ -164,14 +199,14 @@ def remove_me_handler(bot, update, chat_data, args):
 
     try:
         plot_id = int(args[0])
-    except TypeError:
+    except ValueError:
         send_message(bot, chat_id, "The plot ID must be a number!")
         return
 
     plot = chat_data.get(plot_id)
 
     if plot is None:
-        send_message(bot, chat_id, "That plot doesn't exist!")
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
     result = plot.remove_point(username)
@@ -205,14 +240,14 @@ def show_plot_handler(bot, update, chat_data, args):
 
     try:
         plot_id = int(args[0])
-    except TypeError:
+    except ValueError:
         send_message(bot, chat_id, "The plot ID must be a number!")
         return
 
     plot = chat_data.get(plot_id)
 
     if plot is None:
-        send_message(bot, chat_id, "That plot doesn't exist!")
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
     result = plot.generate_plot()
@@ -232,7 +267,7 @@ def list_plots_handler(bot, update, chat_data):
 
     text = "Current plots:\n\n"
     for key in chat_data.keys():
-        text += "(" + str(key) + "): " + str(chat_data[key].get_name())
+        text += "(" + str(key) + "): " + str(chat_data[key].get_name()) + "\n"
     send_message(bot, chat_id, text)
 
 
@@ -246,14 +281,14 @@ def get_plot_stats_handler(bot, update, chat_data, args):
 
     try:
         plot_id = int(args[0])
-    except TypeError:
+    except ValueError:
         send_message(bot, chat_id, "The plot ID must be a number!")
         return
 
     plot = chat_data.get(plot_id)
 
     if plot is None:
-        send_message(bot, chat_id, "That is not a valid plot.")
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
     result = plot.generate_stats()
@@ -279,14 +314,14 @@ def polyfit_plot_handler(bot, update, chat_data, args):
     try:
         plot_id = int(args[0])
         deg = 1 if len(args) != 2 else int(args[1])
-    except TypeError:
-        send_message(bot, chat_id, "The plot ID must be a number!")
+    except ValueError:
+        send_message(bot, chat_id, "All input arguments must be integers!")
         return
 
     plot = chat_data.get(plot_id)
 
     if plot is None:
-        send_message(bot, chat_id, "That is not a valid plot.")
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
     result = plot.polyfit(deg)
@@ -302,6 +337,91 @@ def polyfit_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "Plot (" + str(plot_id) + ") R^2: " + str(result[1][1]))
 
 
+def whomademe_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+
+    # Args are: plot_id
+    if len(args) < 1:
+        send_message(bot, chat_id, "usage: /whomademe {plot_id}")
+        return
+
+    try:
+        plot_id = int(args[0])
+    except ValueError:
+        send_message(bot, chat_id, "The plot ID must be a number!")
+        return
+
+    plot = chat_data.get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    send_message(bot, chat_id, "Plot (" + str(plot_id) + ") was made by: " + str(plot.get_creator()))
+
+
+def custom_point_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    # Args are: plot_id, x, y, label
+    if len(args) != 4:
+        send_message(bot, chat_id, "usage: /custompoint {plot_id} {x} {y} {label}")
+        return
+
+    try:
+        plot_id = int(args[0])
+        x = float(args[1])
+        y = float(args[2])
+        label = str(args[3])
+    except ValueError:
+        send_message(bot, chat_id, "All input arguments must be integers!")
+        return
+
+    plot = chat_data.get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    if str(plot.get_creator()) != str(username):
+        send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
+        return
+
+    if not plot.get_if_custom_points():
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't support custom points!")
+        return
+
+    result = plot.plot_point(label, x, y)
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        img = plot.generate_plot()
+
+        if img is None:
+            return
+
+        if img[0] == 1:
+            send_message(bot, chat_id, img[1])
+            return
+        elif img[0] == 0:
+            bot.send_photo(chat_id=chat_id, photo=img[1])
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -315,7 +435,7 @@ if __name__ == "__main__":
     updater = Updater(token=TOKEN, persistence=pp)
     dispatcher = updater.dispatcher
 
-    static_commands = ["help"]
+    static_commands = ["help", "patchnotes"]
     for c in static_commands:
         dispatcher.add_handler(static_handler(c))
 
@@ -323,10 +443,12 @@ if __name__ == "__main__":
     plot_me_aliases = ["plotme", "pm", "plot"]
     remove_me_aliases = ["removeme", "rm", "begone"]
     remove_plot_aliases = ["removeplot", "rp"]
-    show_plot_aliases = ["showplot", "sp"]
+    show_plot_aliases = ["showplot", "sp", "lookatthisgraph"]
     list_plots_aliases = ["listplots", "lp"]
     get_plot_stats_aliases = ["getplotstats", "plotstats", "ps"]
     polyfit_plot_aliases = ["polyfitplot", "pp"]
+    whomademe_aliases = ["whomademe", "who", "w"]
+    custom_point_aliases = ["custompoint", "cp", "dk"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -334,7 +456,9 @@ if __name__ == "__main__":
                 ("show_plot", 2, show_plot_aliases),
                 ("list_plots", 1, list_plots_aliases),
                 ("get_plot_stats", 2, get_plot_stats_aliases),
-                ("polyfit_plot", 2, polyfit_plot_aliases)]
+                ("polyfit_plot", 2, polyfit_plot_aliases),
+                ("whomademe", 2, whomademe_aliases),
+                ("custom_point", 2, custom_point_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

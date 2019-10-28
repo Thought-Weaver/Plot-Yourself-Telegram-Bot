@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python
 from __future__ import unicode_literals
 
 from matplotlib import pyplot as plt
@@ -9,14 +10,6 @@ import numpy as np
 import pandas as pd
 from sympy import S, symbols, printing
 
-import telegram
-from telegram.error import TelegramError
-
-with open("api_key.txt", 'r') as f:
-    TOKEN = f.read().rstrip()
-
-bot = telegram.Bot(token=TOKEN)
-
 # I think it might be more elegant to return non-null and return strings with error text if need be. Sometimes,
 # however, I'll be returning non-errors, so I might want to implement a tuple system: (err_code, data)
 # Let 0 be success and 1 be some error.
@@ -26,7 +19,7 @@ bot = telegram.Bot(token=TOKEN)
 # https://stackoverflow.com/questions/51113062/how-to-receive-images-from-telegram-bot
 
 class Plot:
-    def __init__(self, name, xaxisleft, xaxisright, yaxisbottom, yaxistop, minx, maxx, miny, maxy, createdby):
+    def __init__(self, name, xaxisleft, xaxisright, yaxisbottom, yaxistop, minx, maxx, miny, maxy, createdby, custompoints=False):
         self.__name = name
         self.__xaxisleft = xaxisleft
         self.__xaxisright = xaxisright
@@ -38,10 +31,11 @@ class Plot:
         self.__maxy = maxy
         self.__points = []
         self.__createdby = createdby
+        self.__custompoints = custompoints
 
     def __check_bounds(self, x, y):
         if (self.__minx is not None and x < self.__minx) or (self.__maxx is not None and x > self.__maxx) or \
-                (self.__miny is not None and x < self.__miny) or (self.__maxy is not None and x > self.__maxy):
+                (self.__miny is not None and y < self.__miny) or (self.__maxy is not None and y > self.__maxy):
             return False
         return True
 
@@ -117,14 +111,13 @@ class Plot:
         return 0, pd.DataFrame(points_dict).describe()
 
     def polyfit(self, deg):
-        if deg >= len(self.__points):
-            return 1, "Error: Degree cannot be greater than or equal to the number of points (" + str(len(self.__points)) + ")!"
-
         X = [p[1] for p in self.__points]
         Y = [p[2] for p in self.__points]
         labels = [p[0] for p in self.__points]
         colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
                   for color_hash in [ColorHash(label).rgb for label in labels]]
+
+        fig = plt.figure()
 
         for i in range(len(X)):
             plt.annotate(labels[i], (X[i], Y[i]))
@@ -156,7 +149,6 @@ class Plot:
         poly = sum(S("{:6.2f}".format(v)) * x ** i for i, v in enumerate(p[::-1]))
         eq_latex = printing.latex(poly)
 
-        fig = plt.figure()
         plt.grid(True)
         plt.scatter(X, Y, c=colors)
         plt.axhline(y=0, color='k')
@@ -201,3 +193,9 @@ class Plot:
 
     def get_maxy(self):
         return self.__maxy
+
+    def get_creator(self):
+        return self.__createdby
+
+    def get_if_custom_points(self):
+        return self.__custompoints
