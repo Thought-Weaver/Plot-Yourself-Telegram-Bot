@@ -6,3 +6,4 @@ New Features:
 -Added commands to bot autosuggest list. For real this time.
 -Updated /help.
 -Added new aliases.
+-Added polyfit and descriptive stats to boxed plots. Also changed the order of vertical args.

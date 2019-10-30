@@ -320,10 +320,6 @@ def get_plot_stats_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
-    if type(plot) != Plot:
-        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") is not the right type!")
-        return
-
     result = plot.generate_stats()
 
     if result is None:
@@ -357,9 +353,11 @@ def polyfit_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
+    """
     if type(plot) != Plot:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") is not the right type!")
         return
+    """
 
     result = plot.polyfit(deg)
 

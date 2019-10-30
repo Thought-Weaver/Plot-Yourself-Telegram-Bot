@@ -296,6 +296,79 @@ class BoxedPlot:
         # This returns the image itself that can then be sent.
         return 0, buffer
 
+    def generate_stats(self):
+        points_dict = { "Names" : pd.Series(np.asarray([p[0] for p in self.__points], dtype=str)),
+                        "X" : pd.Series(np.asarray([p[1] for p in self.__points], dtype=float)),
+                        "Y" : pd.Series(np.asarray([p[2] for p in self.__points], dtype=float)) }
+        return 0, pd.DataFrame(points_dict).describe()
+
+    def polyfit(self, deg):
+        X = [p[1] for p in self.__points]
+        Y = [p[2] for p in self.__points]
+        labels = [p[0] for p in self.__points]
+        colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
+                  for color_hash in [ColorHash(label).rgb for label in labels]]
+
+        fig = plt.figure()
+        plt.grid(False)
+        plt.scatter(X, Y, c=colors)
+        plt.axhline(y=self.__minx, color='k')
+        plt.axvline(x=self.__miny, color='k')
+        plt.axhline(y=self.__maxx, color='k')
+        plt.axvline(x=self.__maxy, color='k')
+        plt.axhline(y=self.__minx + (self.__maxx - self.__minx) / 3, color='k')
+        plt.axvline(x=self.__miny + (self.__maxy - self.__miny) / 3, color='k')
+        plt.axhline(y=self.__minx + 2 * (self.__maxx - self.__minx) / 3, color='k')
+        plt.axvline(x=self.__miny + 2 * (self.__maxy - self.__miny) / 3, color='k')
+
+        for i in range(len(X)):
+            plt.annotate(labels[i], (X[i], Y[i]))
+
+        x_axis_title = ""
+        if self.__horiz is not None:
+            for h in self.__horiz:
+                x_axis_title += h + " || "
+        x_axis_title = x_axis_title[:-4]
+
+        y_axis_title = ""
+        if self.__vert is not None:
+            for v in self.__vert:
+                y_axis_title += v + " || "
+        y_axis_title = y_axis_title[:-4]
+
+        plt.xlabel(x_axis_title)
+        plt.ylabel(y_axis_title)
+
+        plt.xlim(left=self.__minx, right=self.__maxx)
+        plt.ylim(bottom=self.__miny, top=self.__maxy)
+
+        if self.__name is not None:
+            plt.title(str(self.__name))
+
+        p = np.polyfit(X, Y, deg)
+        f = np.poly1d(p)
+
+        x_new = np.linspace(min(X), max(X), 10 * len(X))
+        y_new = f(x_new)
+
+        x = symbols("x")
+        poly = sum(S("{:6.2f}".format(v)) * x ** i for i, v in enumerate(p[::-1]))
+        eq_latex = printing.latex(poly)
+
+        plt.plot(x_new, y_new, label="${}$".format(eq_latex))
+        plt.legend(fontsize="small")
+
+        buffer = BytesIO()
+        fig.savefig(buffer, format="png")
+        buffer.seek(0)
+
+        yhat = f(X)
+        ybar = np.sum(Y) / len(Y)
+        ssres = np.sum((Y - yhat) ** 2)
+        sstot = np.sum((Y - ybar) ** 2)
+
+        return 0, (buffer, 1 - ssres / sstot)
+
     def get_name(self):
         return self.__name
 
