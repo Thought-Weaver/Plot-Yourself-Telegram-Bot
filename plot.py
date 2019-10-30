@@ -199,3 +199,126 @@ class Plot:
 
     def get_if_custom_points(self):
         return self.__custompoints
+
+
+class BoxedPlot:
+    # We'll define horiz = [h1, h2, h3], vertical = [v1, v2, v3]
+    def __init__(self, name, horiz, vert, minx, maxx, miny, maxy, createdby, custompoints=False):
+        self.__name = name
+        self.__horiz = horiz
+        self.__vert = vert
+        self.__minx = -10
+        self.__maxx = 10
+        self.__miny = -10
+        self.__maxy = 10
+        self.__points = []
+        self.__createdby = createdby
+        self.__custompoints = custompoints
+
+    def __check_bounds(self, x, y):
+        if (self.__minx is not None and x < self.__minx) or (self.__maxx is not None and x > self.__maxx) or \
+                (self.__miny is not None and y < self.__miny) or (self.__maxy is not None and y > self.__maxy):
+            return False
+        return True
+
+    def plot_point(self, label, x, y):
+        if not self.__check_bounds(x, y):
+            return 1, "Error: Plot point cannot be out of bounds: " \
+                      "x : [" + str(self.__minx if self.__minx is not None else "_") + ", " + \
+                   str(self.__maxx if self.__maxx is not None else "_") + "] " + \
+                   "y : [" + str(self.__miny if self.__miny is not None else "_") + ", " + \
+                   str(self.__maxy if self.__maxy is not None else "_") + "]"
+
+        for i in range(len(self.__points)):
+            if self.__points[i][0] == label:
+                self.__points[i] = (label, x, y)
+                return 0, ""
+
+        self.__points.append((label if label is not None else "", x, y))
+
+        return 0, ""
+
+    def remove_point(self, label):
+        if label not in [t[0] for t in self.__points]:
+            return 1, "Error: You haven't plotted yourself in this plot."
+        self.__points.remove(next(p for p in self.__points if p[0] == label))
+
+        return 0, ""
+
+    def generate_plot(self):
+        X = [p[1] for p in self.__points]
+        Y = [p[2] for p in self.__points]
+        labels = [p[0] for p in self.__points]
+        colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
+                  for color_hash in [ColorHash(label).rgb for label in labels]]
+
+        fig = plt.figure()
+        plt.grid(False)
+        plt.scatter(X, Y, c=colors)
+        plt.axhline(y=self.__minx, color='k')
+        plt.axvline(x=self.__miny, color='k')
+        plt.axhline(y=self.__maxx, color='k')
+        plt.axvline(x=self.__maxy, color='k')
+        plt.axhline(y=self.__minx + (self.__maxx - self.__minx) / 3, color='k')
+        plt.axvline(x=self.__miny + (self.__maxy - self.__miny) / 3, color='k')
+        plt.axhline(y=self.__minx + 2 * (self.__maxx - self.__minx) / 3, color='k')
+        plt.axvline(x=self.__miny + 2 * (self.__maxy - self.__miny) / 3, color='k')
+
+        for i in range(len(X)):
+            plt.annotate(labels[i], (X[i], Y[i]))
+
+        x_axis_title = ""
+        if self.__horiz is not None:
+            for h in self.__horiz:
+                x_axis_title += h + " || "
+        x_axis_title = x_axis_title[:-4]
+
+        y_axis_title = ""
+        if self.__vert is not None:
+            for v in self.__vert:
+                y_axis_title += v + " || "
+        y_axis_title = y_axis_title[:-4]
+
+        plt.xlabel(x_axis_title)
+        plt.ylabel(y_axis_title)
+
+        plt.xlim(left=self.__minx, right=self.__maxx)
+        plt.ylim(bottom=self.__miny, top=self.__maxy)
+
+        if self.__name is not None:
+            plt.title(str(self.__name))
+
+        buffer = BytesIO()
+        fig.savefig(buffer, format="png")
+        buffer.seek(0)
+
+        # bot.send_photo(chat_id=chat_id, photo=buffer)
+        # This returns the image itself that can then be sent.
+        return 0, buffer
+
+    def get_name(self):
+        return self.__name
+
+    def get_horiz(self):
+        return self.__horiz
+
+    def get_vert(self):
+        return self.__vert
+
+    def get_minx(self):
+        return self.__minx
+
+    def get_maxx(self):
+        return self.__maxx
+
+    def get_miny(self):
+        return self.__miny
+
+    def get_maxy(self):
+        return self.__maxy
+
+    def get_creator(self):
+        return self.__createdby
+
+    def get_if_custom_points(self):
+        return self.__custompoints

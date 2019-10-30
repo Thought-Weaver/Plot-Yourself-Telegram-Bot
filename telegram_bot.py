@@ -10,7 +10,7 @@ import logging
 import os
 import argparse
 
-from plot import Plot
+from plot import Plot, BoxedPlot
 
 with open("api_key.txt", 'r') as f:
     TOKEN = f.read().rstrip()
@@ -28,6 +28,20 @@ ARG_PARSER.add_argument("-Mx", "--maxx", type=int)
 ARG_PARSER.add_argument("-my", "--miny", type=int)
 ARG_PARSER.add_argument("-My", "--maxy", type=int)
 ARG_PARSER.add_argument("--custompoints", action="store_true")
+
+BOX_ARG_PARSER = argparse.ArgumentParser(description="The parser for creating plots.")
+BOX_ARG_PARSER.add_argument("-t", "--title", type=str, nargs='*')
+BOX_ARG_PARSER.add_argument("-h1", "--horiz1", type=str, nargs='*')
+BOX_ARG_PARSER.add_argument("-h2", "--horiz2", type=str, nargs='*')
+BOX_ARG_PARSER.add_argument("-h3", "--horiz3", type=str, nargs='*')
+BOX_ARG_PARSER.add_argument("-v1", "--vert1", type=str, nargs='*')
+BOX_ARG_PARSER.add_argument("-v2", "--vert2", type=str, nargs='*')
+BOX_ARG_PARSER.add_argument("-v3", "--vert3", type=str, nargs='*')
+BOX_ARG_PARSER.add_argument("-mx", "--minx", type=int)
+BOX_ARG_PARSER.add_argument("-Mx", "--maxx", type=int)
+BOX_ARG_PARSER.add_argument("-my", "--miny", type=int)
+BOX_ARG_PARSER.add_argument("-My", "--maxy", type=int)
+BOX_ARG_PARSER.add_argument("--custompoints", action="store_true")
 
 def send_message(bot, chat_id, text):
     try:
@@ -306,6 +320,10 @@ def get_plot_stats_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
+    if type(plot) != Plot:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") is not the right type!")
+        return
+
     result = plot.generate_stats()
 
     if result is None:
@@ -337,6 +355,10 @@ def polyfit_plot_handler(bot, update, chat_data, args):
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    if type(plot) != Plot:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") is not the right type!")
         return
 
     result = plot.polyfit(deg)
@@ -437,6 +459,59 @@ def custom_point_handler(bot, update, chat_data, args):
             bot.send_photo(chat_id=chat_id, photo=img[1])
 
 
+def boxed_plot_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    try:
+        parsed = BOX_ARG_PARSER.parse_args(args)
+        plot_args = vars(parsed)
+    except SystemExit:
+        send_message(bot, chat_id, "That is not a valid argument list. See /help.")
+        return
+
+    if len(plot_args.keys()) > 12:
+        send_message(bot, chat_id, "usage (all args optional): /boxedplot --title {title} "
+                                   "--horiz2 {h1} --horiz2 {h2} --horiz3 {h3} "
+                                   "--vert1 {v1} --vert2 {v2} --vert3 {v3} "
+                                   "--xmin {xmin} --xmax {xmax} --ymin {ymin} --ymax {ymax} "
+                                   "--custompoints")
+        return
+
+    horiz = [
+        " ".join(plot_args.get("horiz1")) if plot_args.get("horiz1") is not None else "",
+        " ".join(plot_args.get("horiz2")) if plot_args.get("horiz2") is not None else "",
+        " ".join(plot_args.get("horiz3")) if plot_args.get("horiz3") is not None else ""
+    ]
+    vert = [
+        " ".join(plot_args.get("vert1")) if plot_args.get("vert1") is not None else "",
+        " ".join(plot_args.get("vert2")) if plot_args.get("vert2") is not None else "",
+        " ".join(plot_args.get("vert3")) if plot_args.get("vert3") is not None else ""
+    ]
+
+    plot = BoxedPlot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
+                horiz,
+                vert,
+                plot_args.get("minx") if plot_args.get("minx") is not None else -10,
+                plot_args.get("maxx") if plot_args.get("maxx") is not None else 10,
+                plot_args.get("miny") if plot_args.get("miny") is not None else -10,
+                plot_args.get("maxy") if plot_args.get("maxy") is not None else 10,
+                username,
+                plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
+    chat_data[len(chat_data.keys()) + 1] = plot
+
+    send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) + " (" + str(len(chat_data.keys())) + ") was created successfully!")
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -454,16 +529,17 @@ if __name__ == "__main__":
     for c in static_commands:
         dispatcher.add_handler(static_handler(c))
 
-    create_plot_aliases = ["createplot", "cp"]
+    create_plot_aliases = ["createplot", "crp"]
     plot_me_aliases = ["plotme", "pm", "plot"]
     remove_me_aliases = ["removeme", "rm", "begone"]
-    remove_plot_aliases = ["removeplot", "rp"]
+    remove_plot_aliases = ["removeplot", "rp", "begoneplot"]
     show_plot_aliases = ["showplot", "sp", "lookatthisgraph"]
     list_plots_aliases = ["listplots", "lp"]
     get_plot_stats_aliases = ["getplotstats", "plotstats", "ps"]
     polyfit_plot_aliases = ["polyfitplot", "pp"]
     whomademe_aliases = ["whomademe", "who", "w"]
     custom_point_aliases = ["custompoint", "cp", "dk"]
+    boxed_plot_aliases = ["boxedplot", "bp"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -473,7 +549,8 @@ if __name__ == "__main__":
                 ("get_plot_stats", 2, get_plot_stats_aliases),
                 ("polyfit_plot", 2, polyfit_plot_aliases),
                 ("whomademe", 2, whomademe_aliases),
-                ("custom_point", 2, custom_point_aliases)]
+                ("custom_point", 2, custom_point_aliases),
+                ("boxed_plot", 2, boxed_plot_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

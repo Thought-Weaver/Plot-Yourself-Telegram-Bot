@@ -1,24 +1,8 @@
-Patch Notes (10/28/2019):
+Patch Notes (10/30/2019):
 
 New Features:
 
--Added titles, axes, and labels to polyfit plot.
--Added newlines to /listplots.
--Removed degree limit on polyfit. You’re not guaranteed to get a polynomial of that degree, just bounded above by that degree.
--Added /lookatthisgraph as an alias for /showplot.
--Default bounds on plots are [-10, 10] on both axes. Infinite plots aren’t specifiable at the moment.
--Added a new command /whomademe {plot_id} to see the creator of the plot.
--Added additional context when selecting a non-existent plot.
--Added a new command /patchnotes to see a history of updates.
--Added a new flag --custompoints when creating plots. This will permit the creator to plot custom points, allowing us to play Dildo Knife! If the flag is specified, the creator can plot custom points using /custompoint (/cp) {plot_id} {x} {y} {label}
--Added commands to bot autosuggest list.
--Updated /help with new commands.
--Added a notification when removing a plot.
-
-Bug Fixes:
-
--Evan can plot himself now! (Username bug has been fixed.)
--Fixed a bug where check bounds would only check the x boundary.
--Fixed catching ValueErrors when plot_ids are invalid.
--Fixed a bug where invalid args would break the bot.
--Fixed a bug where people other than the author could delete their plots.
+-Added /boxedplot, a way to plot alignment charts using the three box format. This works the same as a normal plot, but there's no polyfit or stats.
+-Added commands to bot autosuggest list. For real this time.
+-Updated /help.
+-Added new aliases.
