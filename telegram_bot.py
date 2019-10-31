@@ -491,9 +491,9 @@ def boxed_plot_handler(bot, update, chat_data, args):
         " ".join(plot_args.get("horiz3")) if plot_args.get("horiz3") is not None else ""
     ]
     vert = [
+        " ".join(plot_args.get("vert3")) if plot_args.get("vert3") is not None else "",
         " ".join(plot_args.get("vert1")) if plot_args.get("vert1") is not None else "",
-        " ".join(plot_args.get("vert2")) if plot_args.get("vert2") is not None else "",
-        " ".join(plot_args.get("vert3")) if plot_args.get("vert3") is not None else ""
+        " ".join(plot_args.get("vert2")) if plot_args.get("vert2") is not None else ""
     ]
 
     plot = BoxedPlot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
