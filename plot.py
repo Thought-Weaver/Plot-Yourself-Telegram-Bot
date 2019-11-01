@@ -63,7 +63,7 @@ class Plot:
 
         return 0, ""
 
-    def generate_plot(self):
+    def generate_plot(self, toggle_labels=True):
         X = [p[1] for p in self.__points]
         Y = [p[2] for p in self.__points]
         labels = [p[0] for p in self.__points]
@@ -76,8 +76,9 @@ class Plot:
         plt.axhline(y=0, color='k')
         plt.axvline(x=0, color='k')
 
-        for i in range(len(X)):
-            plt.annotate(labels[i], (X[i], Y[i]))
+        if toggle_labels:
+            for i in range(len(X)):
+                plt.annotate(labels[i], (X[i], Y[i]))
 
         if self.__xaxisleft is not None and self.__xaxisright is not None:
             plt.xlabel("<-- " + str(self.__xaxisright) + " || " + str(self.__xaxisleft) + " -->")
@@ -110,7 +111,7 @@ class Plot:
                         "Y" : pd.Series(np.asarray([p[2] for p in self.__points], dtype=float)) }
         return 0, pd.DataFrame(points_dict).describe()
 
-    def polyfit(self, deg):
+    def polyfit(self, deg, toggle_labels=True):
         X = [p[1] for p in self.__points]
         Y = [p[2] for p in self.__points]
         labels = [p[0] for p in self.__points]
@@ -119,22 +120,23 @@ class Plot:
 
         fig = plt.figure()
 
-        for i in range(len(X)):
-            plt.annotate(labels[i], (X[i], Y[i]))
+        if toggle_labels:
+            for i in range(len(X)):
+                plt.annotate(labels[i], (X[i], Y[i]))
 
-            if self.__xaxisleft is not None and self.__xaxisright is not None:
-                plt.xlabel("<-- " + str(self.__xaxisright) + " || " + str(self.__xaxisleft) + " -->")
-            elif self.__xaxisright is None and self.__xaxisleft is not None:
-                plt.xlabel(str(self.__xaxisleft))
-            elif self.__xaxisleft is None and self.__xaxisright is not None:
-                plt.xlabel(str(self.__xaxisright))
+        if self.__xaxisleft is not None and self.__xaxisright is not None:
+            plt.xlabel("<-- " + str(self.__xaxisright) + " || " + str(self.__xaxisleft) + " -->")
+        elif self.__xaxisright is None and self.__xaxisleft is not None:
+            plt.xlabel(str(self.__xaxisleft))
+        elif self.__xaxisleft is None and self.__xaxisright is not None:
+            plt.xlabel(str(self.__xaxisright))
 
-            if self.__yaxistop is not None and self.__yaxisbottom is not None:
-                plt.ylabel("<-- " + str(self.__yaxistop) + " || " + str(self.__yaxisbottom) + " -->")
-            elif self.__yaxisbottom is None and self.__yaxistop is not None:
-                plt.ylabel(str(self.__yaxistop))
-            elif self.__yaxistop is None and self.__yaxisbottom is not None:
-                plt.ylabel(str(self.__yaxisbottom))
+        if self.__yaxistop is not None and self.__yaxisbottom is not None:
+            plt.ylabel("<-- " + str(self.__yaxistop) + " || " + str(self.__yaxisbottom) + " -->")
+        elif self.__yaxisbottom is None and self.__yaxistop is not None:
+            plt.ylabel(str(self.__yaxistop))
+        elif self.__yaxistop is None and self.__yaxisbottom is not None:
+            plt.ylabel(str(self.__yaxisbottom))
 
         if self.__name is not None:
             plt.title(str(self.__name))
@@ -166,6 +168,12 @@ class Plot:
         sstot = np.sum((Y - ybar) ** 2)
 
         return 0, (buffer, 1 - ssres / sstot)
+
+    def lookup_label(self, label):
+        for p in self.__points:
+            if p[0] == label:
+                return 0, (p[1], p[2])
+        return 1, "Name not found on that plot."
 
     def get_name(self):
         return self.__name
@@ -245,7 +253,7 @@ class BoxedPlot:
 
         return 0, ""
 
-    def generate_plot(self):
+    def generate_plot(self, toggle_labels=True):
         X = [p[1] for p in self.__points]
         Y = [p[2] for p in self.__points]
         labels = [p[0] for p in self.__points]
@@ -264,8 +272,9 @@ class BoxedPlot:
         plt.axhline(y=self.__minx + 2 * (self.__maxx - self.__minx) / 3, color='k')
         plt.axvline(x=self.__miny + 2 * (self.__maxy - self.__miny) / 3, color='k')
 
-        for i in range(len(X)):
-            plt.annotate(labels[i], (X[i], Y[i]))
+        if toggle_labels:
+            for i in range(len(X)):
+                plt.annotate(labels[i], (X[i], Y[i]))
 
         x_axis_title = ""
         if self.__horiz is not None:
@@ -302,7 +311,7 @@ class BoxedPlot:
                         "Y" : pd.Series(np.asarray([p[2] for p in self.__points], dtype=float)) }
         return 0, pd.DataFrame(points_dict).describe()
 
-    def polyfit(self, deg):
+    def polyfit(self, deg, toggle_labels=True):
         X = [p[1] for p in self.__points]
         Y = [p[2] for p in self.__points]
         labels = [p[0] for p in self.__points]
@@ -321,8 +330,9 @@ class BoxedPlot:
         plt.axhline(y=self.__minx + 2 * (self.__maxx - self.__minx) / 3, color='k')
         plt.axvline(x=self.__miny + 2 * (self.__maxy - self.__miny) / 3, color='k')
 
-        for i in range(len(X)):
-            plt.annotate(labels[i], (X[i], Y[i]))
+        if toggle_labels:
+            for i in range(len(X)):
+                plt.annotate(labels[i], (X[i], Y[i]))
 
         x_axis_title = ""
         if self.__horiz is not None:
@@ -368,6 +378,12 @@ class BoxedPlot:
         sstot = np.sum((Y - ybar) ** 2)
 
         return 0, (buffer, 1 - ssres / sstot)
+
+    def lookup_label(self, label):
+        for p in self.__points:
+            if p[0] == label:
+                return 0, (p[1], p[2])
+        return 1, "Name not found on that plot."
 
     def get_name(self):
         return self.__name

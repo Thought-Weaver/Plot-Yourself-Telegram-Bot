@@ -138,7 +138,7 @@ def remove_plot_handler(bot, update, chat_data, args):
     try:
         plot_id = int(args[0])
     except ValueError:
-        send_message(bot, chat_id, "The plot ID must be a number!")
+        send_message(bot, chat_id, "The plot ID must be an integer!")
         return
 
     plot = chat_data.get(plot_id)
@@ -229,7 +229,7 @@ def remove_me_handler(bot, update, chat_data, args):
     try:
         plot_id = int(args[0])
     except ValueError:
-        send_message(bot, chat_id, "The plot ID must be a number!")
+        send_message(bot, chat_id, "The plot ID must be an integer!")
         return
 
     plot = chat_data.get(plot_id)
@@ -253,24 +253,25 @@ def remove_me_handler(bot, update, chat_data, args):
             return
 
         if img[0] == 1:
-            send_message(bot, chat_id, result[1])
+            send_message(bot, chat_id, img[1])
             return
         elif img[0] == 0:
-            bot.send_photo(chat_id=chat_id, photo=result[1])
+            bot.send_photo(chat_id=chat_id, photo=img[1])
 
 
 def show_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
 
-    # Args are: plot_id
-    if len(args) != 1:
-        send_message(bot, chat_id, "usage: /showplot {plot_id}")
+    # Args are: plot_id {optional toggle for labels}
+    if len(args) == 0 or len(args) > 2:
+        send_message(bot, chat_id, "usage: /showplot {plot_id} {optional 0/1 toggle for labels}")
         return
 
     try:
         plot_id = int(args[0])
+        toggle = 1 if len(args) != 2 else int(args[1])
     except ValueError:
-        send_message(bot, chat_id, "The plot ID must be a number!")
+        send_message(bot, chat_id, "The plot ID and optional toggle must be an integer!")
         return
 
     plot = chat_data.get(plot_id)
@@ -279,7 +280,8 @@ def show_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
-    result = plot.generate_plot()
+    toggle_labels = True if toggle > 0 else False
+    result = plot.generate_plot(toggle_labels=toggle_labels)
 
     if result is None:
         return
@@ -311,7 +313,7 @@ def get_plot_stats_handler(bot, update, chat_data, args):
     try:
         plot_id = int(args[0])
     except ValueError:
-        send_message(bot, chat_id, "The plot ID must be a number!")
+        send_message(bot, chat_id, "The plot ID must be an integer!")
         return
 
     plot = chat_data.get(plot_id)
@@ -335,14 +337,15 @@ def get_plot_stats_handler(bot, update, chat_data, args):
 def polyfit_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
 
-    # Args are: plot_id
-    if len(args) < 1:
-        send_message(bot, chat_id, "usage: /polyfitplot {plot_id} {optional degree}")
+    # Args are: plot_id {optional degree} {optional toggle_labels}
+    if len(args) == 0 or len(args) > 3:
+        send_message(bot, chat_id, "usage: /polyfitplot {plot_id} {optional degree} {optional label toggle}")
         return
 
     try:
         plot_id = int(args[0])
-        deg = 1 if len(args) != 2 else int(args[1])
+        deg = 1 if len(args) < 2 else int(args[1])
+        toggle = 1 if len(args) < 3 else int(args[2])
     except ValueError:
         send_message(bot, chat_id, "All input arguments must be integers!")
         return
@@ -353,13 +356,18 @@ def polyfit_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
+    if deg < 0:
+        send_message(bot, chat_id, "Degree must be non-negative!")
+        return
+
     """
     if type(plot) != Plot:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") is not the right type!")
         return
     """
 
-    result = plot.polyfit(deg)
+    toggle_labels = True if toggle > 0 else False
+    result = plot.polyfit(deg, toggle_labels=toggle_labels)
 
     if result is None:
         return
@@ -383,7 +391,7 @@ def whomademe_handler(bot, update, chat_data, args):
     try:
         plot_id = int(args[0])
     except ValueError:
-        send_message(bot, chat_id, "The plot ID must be a number!")
+        send_message(bot, chat_id, "The plot ID must be an integer!")
         return
 
     plot = chat_data.get(plot_id)
@@ -510,6 +518,156 @@ def boxed_plot_handler(bot, update, chat_data, args):
     send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) + " (" + str(len(chat_data.keys())) + ") was created successfully!")
 
 
+def lookup_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+
+    # Args are: plot_id, name (assume no spaces, will set lowercase)
+    if len(args) != 4:
+        send_message(bot, chat_id, "usage: /custompoint {plot_id} {name (remove spaces)}")
+        return
+
+    try:
+        plot_id = int(args[0])
+        name = str(args[1])
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID must be an int and name must be a string.")
+        return
+
+    plot = chat_data.get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    result = plot.lookup_label(name)
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        (x, y) = result[1]
+        send_message(bot, chat_id, name + " exists at (" + str(x) + ", " + str(y) + ").")
+        return
+
+
+def my_bet_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if chat_data.get("current_bet") is None:
+        send_message(bot, chat_id, "No bet currently exists!")
+        return
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    # Args are: R^2
+    if len(args) != 1:
+        send_message(bot, chat_id, "usage: /bet {R^2}")
+        return
+
+    try:
+        R2 = float(args[0])
+    except ValueError:
+        send_message(bot, chat_id, "R^2 must be a float!")
+        return
+
+    # We assume there can only be one bet at a time. This has an associated degree and plot ID.
+    chat_data["current_bet"]["bets"][username] = R2
+    send_message(bot, chat_id, "Your bet has been placed!")
+
+
+def setup_bet_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+
+    # Args are: plot_id degree
+    if len(args) != 2:
+        send_message(bot, chat_id, "usage: /setupbet {plot_id} {degree}")
+        return
+
+    if chat_data.get("current_bet") is not None:
+        send_message(bot, chat_id, "The following bet is already in progress:\n\nPlot ID: " +
+                         str(chat_data["current_bet"]["plot_id"]) + "\nDegree: " +
+                         str(chat_data["current_bet"]["degree"]))
+        return
+
+    try:
+        plot_id = int(args[0])
+        degree = int(args[1])
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID and degree must both be integers!")
+        return
+
+    if chat_data.get(plot_id) is None:
+        send_message(bot, chat_id, "That plot does not exist!")
+        return
+
+    if degree < 0:
+        send_message(bot, chat_id, "Degree must be non-negative!")
+        return
+
+    chat_data["current_bet"] = { "plot_id" : plot_id,
+                                 "degree"  : degree,
+                                 "bets"    : {} }
+    send_message(bot, chat_id, "The following bet was created:\n\nPlot ID: " +
+                 str(chat_data["current_bet"]["plot_id"]) + "\nDegree: " +
+                 str(chat_data["current_bet"]["degree"]))
+
+
+def cancel_bet_handler(bot, update, chat_data):
+    chat_id = update.message.chat.id
+
+    if chat_data.get("current_bet") is None:
+        send_message(bot, chat_id, "No bet currently exists!")
+        return
+
+    chat_data["current_bet"] = None
+    send_message(bot, chat_id, "The bet has been canceled.")
+
+
+def complete_bet_handler(bot, update, chat_data):
+    chat_id = update.message.chat.id
+
+    if chat_data.get("current_bet") is None:
+        send_message(bot, chat_id, "No bet currently exists!")
+        return
+
+    plot = chat_data.get(chat_data["current_bet"]["plot_id"])
+    result = plot.polyfit(chat_data["current_bet"]["degree"])
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        best = ""
+        bestr2 = 0
+        best_diff = 2e30
+        for key in chat_data["current_bet"]["bets"].keys():
+            diff = abs(chat_data["current_bet"]["bets"][key] - result[1][1])
+            if diff < best_diff:
+                best_diff = diff
+                best = key
+                bestr2 = chat_data["current_bet"]["bets"][key]
+
+        bot.send_photo(chat_id=chat_id, photo=result[1][0])
+        send_message(bot, chat_id, "Actual R^2: " + str(result[1][1]))
+        send_message(bot, chat_id, "Winner: " + best + " with R^2 = " + str(bestr2) + "!")
+
+    chat_data["current_bet"] = None
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -538,6 +696,11 @@ if __name__ == "__main__":
     whomademe_aliases = ["whomademe", "who", "w"]
     custom_point_aliases = ["custompoint", "cp", "dk"]
     boxed_plot_aliases = ["boxedplot", "bp"]
+    lookup_aliases = ["lookup", "l", "wheremst"]
+    setup_bet_aliases = ["setupbet", "sb"]
+    my_bet_aliases = ["bet", "mybet", "mb", "putitallonblack", "putitallonred"]
+    cancel_bet_aliases = ["cancelbet"]
+    complete_bet_aliases = ["completebet", "cb", "rollthedice"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -548,7 +711,12 @@ if __name__ == "__main__":
                 ("polyfit_plot", 2, polyfit_plot_aliases),
                 ("whomademe", 2, whomademe_aliases),
                 ("custom_point", 2, custom_point_aliases),
-                ("boxed_plot", 2, boxed_plot_aliases)]
+                ("boxed_plot", 2, boxed_plot_aliases),
+                ("lookup", 2, lookup_aliases),
+                ("setup_bet", 2, setup_bet_aliases),
+                ("my_bet", 2, my_bet_aliases),
+                ("cancel_bet", 1, cancel_bet_aliases),
+                ("complete_bet", 1, complete_bet_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

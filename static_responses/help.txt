@@ -12,6 +12,10 @@ patchnotes - Displays the current patch update.
 whomademe - Displays the creator of the plot with that ID. (Aliases: who, w)
 custompoint - Plots a custom point with a given label on a plot with an input ID, if it supports custom points by its creator. (Aliases: cp)
 boxedplot - Creates a boxed plot (alignment-chart style). Default bounds are [-10, 10]. Can specify custom points flag. (Aliases: bp)
+setupbet - Begin a bet for that plot on a polynomial of that degree. (Aliases: sb)
+bet - Place your bet into the lot. (Aliases: mybet, putitallonblack, putitallonred)
+completebet - Determine the winner and close the bet. (Aliases: cb, rollthedice)
+cancelbet - End the current bet.
 
 Argument lists for each are below:
 
@@ -19,14 +23,18 @@ Argument lists for each are below:
 /removeplot {plot_id}
 /plotme {plot_id} {x} {y}
 /removeme {plot_id}
-/showplot {plot_id}
+/showplot {plot_id} {optional label toggle}
 /listplots
-/polyfitplot {plot_id} {degree}
+/polyfitplot {plot_id} {optional degree} {optional label toggle}
 /plotstats {plot_id}
 /patchnotes
 /whomademe {plot_id}
 /custompoint {plot_id} {x} {y} {label}
 /boxedplot --title {title} --horiz2 {h1} --horiz2 {h2} --horiz3 {h3} --vert1 {v1} --vert2 {v2} --vert3 {v3} --xmin {xmin} --xmax {xmax} --ymin {ymin} --ymax {ymax} --custompoints
+/setupbet {plot_id} {degree}
+/bet {r^2 value}
+/completebet
+/cancelbet
 
 Note that all the arguments for /createplot and /boxedplot are optional. Also note that the default bounds on a plot are [-10, 10] on both axes. Here are a couple of examples:
 
