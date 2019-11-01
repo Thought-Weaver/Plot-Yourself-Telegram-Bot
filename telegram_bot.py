@@ -522,7 +522,7 @@ def lookup_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
 
     # Args are: plot_id, name (assume no spaces, will set lowercase)
-    if len(args) != 4:
+    if len(args) != 2:
         send_message(bot, chat_id, "usage: /custompoint {plot_id} {name (remove spaces)}")
         return
 
