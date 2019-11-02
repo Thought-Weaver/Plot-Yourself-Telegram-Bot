@@ -1,25 +1,10 @@
-Patch Notes (11/1/2019):
+Patch Notes (11/2/2019):
 
 New Features:
 
--Added /lookup {plot_id} {name} to find where someone is on a plot.
--Added a betting system for correlation values!
-    * /setupbet {plot_id} {degree} will begin a bet for that plot on a polynomial of that degree.
-    * /bet {r^2 value} will place your bet into the lot. You can change this before the bet closes.
-    * /completebet will determine the winner and close the bet.
-    * /cancelbet will end the current bet.
-    * Only one bet can exist at a time.
-    * Your reward is personal pride and possibly the beginning of a gambling addiction.
--Added an optional param to polyfit and showplot for toggling labels:
-    * /showplot 13 0 will show plot 13 without labels.
-    * /showplot 13 1 will show plot 13 with labels.
-    * /showplot 13 will show plot 13 with labels.
-    * /pp 13 will display a linear fit for plot 13.
-    * /pp 13 2 will display a quadratic fit for plot 13.
-    * /pp 13 2 0 will display a quadratic fit without labels for plot 13.
--Improved performance of generating polyfits.
--Updated error messages for more clarity.
+-Updated polyfit to recommended version.
+-Added /scoreboard to display the top 3 correlation guessers!
 
 Bug Fixes:
 
--Plot will now re-display after removing yourself from the plot.
+-Partially fixed sympy equation display. It's a strange rounding problem.

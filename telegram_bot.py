@@ -9,6 +9,7 @@ import logging
 
 import os
 import argparse
+from collections import Counter
 
 from plot import Plot, BoxedPlot
 
@@ -665,7 +666,31 @@ def complete_bet_handler(bot, update, chat_data):
         send_message(bot, chat_id, "Actual R^2: " + str(result[1][1]))
         send_message(bot, chat_id, "Winner: " + best + " with R^2 = " + str(bestr2) + "!")
 
+        if chat_data.get("scoreboard") is None:
+            chat_data["scoreboard"] = {}
+        if chat_data["scoreboard"].get(best) is None:
+            chat_data["scoreboard"][best] = 1
+        else:
+            chat_data["scoreboard"][best] += 1
+
     chat_data["current_bet"] = None
+
+
+def scoreboard_handler(bot, update, chat_data):
+    chat_id = update.message.chat.id
+
+    if chat_data.get("scoreboard") is None:
+        send_message(bot, chat_id, "No scoreboard exists!")
+        return
+
+    scoreboard = chat_data["scoreboard"]
+    highest = Counter(scoreboard).most_common(3)
+
+    text = "Top 3 Scoreboard:\n\n"
+    for i in highest:
+        text += str(i[0]) + ": " + str(i[1]) + "\n"
+
+    send_message(bot, chat_id, text)
 
 
 def handle_error(bot, update, error):
@@ -701,6 +726,7 @@ if __name__ == "__main__":
     my_bet_aliases = ["bet", "mybet", "mb", "putitallonblack", "putitallonred"]
     cancel_bet_aliases = ["cancelbet"]
     complete_bet_aliases = ["completebet", "cb", "rollthedice"]
+    scoreboard_aliases = ["scoreboard", "tellmeimwinning", "scores", "tops"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -716,7 +742,8 @@ if __name__ == "__main__":
                 ("setup_bet", 2, setup_bet_aliases),
                 ("my_bet", 2, my_bet_aliases),
                 ("cancel_bet", 1, cancel_bet_aliases),
-                ("complete_bet", 1, complete_bet_aliases)]
+                ("complete_bet", 1, complete_bet_aliases),
+                ("scoreboard", 1, scoreboard_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

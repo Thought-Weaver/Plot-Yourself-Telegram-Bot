@@ -17,6 +17,7 @@ bet - Place your bet into the lot. (Aliases: mybet, putitallonblack, putitallonr
 completebet - Determine the winner and close the bet. (Aliases: cb, rollthedice)
 cancelbet - End the current bet.
 lookup - Finds a specified name on a plot and returns the coordinates. (Aliases: l, wheremst)
+scoreboard - Displays the top 3 correlation bet winners. (Aliases: tellmeimwinning, scores, tops)
 
 Argument lists for each are below:
 
@@ -37,6 +38,7 @@ Argument lists for each are below:
 /completebet
 /cancelbet
 /lookup {plot_id} {name}
+/scoreboard
 
 Note that all the arguments for /createplot and /boxedplot are optional. Also note that the default bounds on a plot are [-10, 10] on both axes. Here are a couple of examples:
 

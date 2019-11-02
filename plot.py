@@ -141,14 +141,14 @@ class Plot:
         if self.__name is not None:
             plt.title(str(self.__name))
 
-        p = np.polyfit(X, Y, deg)
-        f = np.poly1d(p)
+        p = np.polynomial.polynomial.polyfit(X, Y, deg)
+        f = np.poly1d(p[::-1])
 
         x_new = np.linspace(min(X), max(X), 10 * len(X))
         y_new = f(x_new)
 
-        x = symbols("x")
-        poly = sum(S("{:6.2f}".format(v)) * x ** i for i, v in enumerate(p[::-1]))
+        x = symbols('x')
+        poly = sum(S("{:6.3f}".format(v)) * x ** i for i, v in enumerate(p))
         eq_latex = printing.latex(poly)
 
         plt.grid(True)
@@ -355,14 +355,14 @@ class BoxedPlot:
         if self.__name is not None:
             plt.title(str(self.__name))
 
-        p = np.polyfit(X, Y, deg)
-        f = np.poly1d(p)
+        p = np.polynomial.polynomial.polyfit(X, Y, deg)
+        f = np.poly1d(p[::-1])
 
         x_new = np.linspace(min(X), max(X), 10 * len(X))
         y_new = f(x_new)
 
         x = symbols("x")
-        poly = sum(S("{:6.2f}".format(v)) * x ** i for i, v in enumerate(p[::-1]))
+        poly = sum(S("{:6.3f}".format(v)) * x ** i for i, v in enumerate(p))
         eq_latex = printing.latex(poly)
 
         plt.plot(x_new, y_new, label="${}$".format(eq_latex))
