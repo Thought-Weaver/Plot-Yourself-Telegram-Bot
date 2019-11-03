@@ -8,7 +8,7 @@ from io import BytesIO
 
 import numpy as np
 import pandas as pd
-from sympy import S, symbols, printing, expand, preview
+from sympy import S, symbols, printing
 
 # I think it might be more elegant to return non-null and return strings with error text if need be. Sometimes,
 # however, I'll be returning non-errors, so I might want to implement a tuple system: (err_code, data)
@@ -174,13 +174,19 @@ class Plot:
         Y = [p[2] for p in self.__points]
 
         p = np.polynomial.polynomial.polyfit(X, Y, deg)
-        f = np.poly1d(p[::-1])
 
         x = symbols('x')
-        eq_latex = printing.latex(expand(f(x)))
+        poly = sum(S("{:f}".format(v)) * x ** i for i, v in enumerate(p))
+        eq_latex = printing.latex(poly)
+
+        fig = plt.figure()
+        plt.grid(False)
+        plt.axis('off')
+        plt.tight_layout()
+        plt.text(0, 0.5, r"$%s$" % eq_latex, fontsize="medium", wrap=True)
 
         buffer = BytesIO()
-        preview(eq_latex, output='png', viewer='BytesIO', outputbuffer=buffer)
+        fig.savefig(buffer, format="png")
         buffer.seek(0)
 
         return 0, buffer
@@ -400,13 +406,19 @@ class BoxedPlot:
         Y = [p[2] for p in self.__points]
 
         p = np.polynomial.polynomial.polyfit(X, Y, deg)
-        f = np.poly1d(p[::-1])
 
         x = symbols('x')
-        eq_latex = printing.latex(expand(f(x)))
+        poly = sum(S("{:f}".format(v)) * x ** i for i, v in enumerate(p))
+        eq_latex = printing.latex(poly)
+
+        fig = plt.figure()
+        plt.grid(False)
+        plt.axis('off')
+        plt.tight_layout()
+        plt.text(0, 0.5, r"$%s$" % eq_latex, fontsize="medium", wrap=True)
 
         buffer = BytesIO()
-        preview(eq_latex, output='png', viewer='BytesIO', outputbuffer=buffer)
+        fig.savefig(buffer, format="png")
         buffer.seek(0)
 
         return 0, buffer
