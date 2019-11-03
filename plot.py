@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import unicode_literals
 
 from matplotlib import pyplot as plt
@@ -8,7 +8,7 @@ from io import BytesIO
 
 import numpy as np
 import pandas as pd
-from sympy import S, symbols, printing
+from sympy import S, symbols, printing, expand, preview
 
 # I think it might be more elegant to return non-null and return strings with error text if need be. Sometimes,
 # however, I'll be returning non-errors, so I might want to implement a tuple system: (err_code, data)
@@ -168,6 +168,22 @@ class Plot:
         sstot = np.sum((Y - ybar) ** 2)
 
         return 0, (buffer, 1 - ssres / sstot)
+
+    def full_equation(self, deg):
+        X = [p[1] for p in self.__points]
+        Y = [p[2] for p in self.__points]
+
+        p = np.polynomial.polynomial.polyfit(X, Y, deg)
+        f = np.poly1d(p[::-1])
+
+        x = symbols('x')
+        eq_latex = printing.latex(expand(f(x)))
+
+        buffer = BytesIO()
+        preview(eq_latex, output='png', viewer='BytesIO', outputbuffer=buffer)
+        buffer.seek(0)
+
+        return 0, buffer
 
     def lookup_label(self, label):
         for p in self.__points:
@@ -378,6 +394,22 @@ class BoxedPlot:
         sstot = np.sum((Y - ybar) ** 2)
 
         return 0, (buffer, 1 - ssres / sstot)
+
+    def full_equation(self, deg):
+        X = [p[1] for p in self.__points]
+        Y = [p[2] for p in self.__points]
+
+        p = np.polynomial.polynomial.polyfit(X, Y, deg)
+        f = np.poly1d(p[::-1])
+
+        x = symbols('x')
+        eq_latex = printing.latex(expand(f(x)))
+
+        buffer = BytesIO()
+        preview(eq_latex, output='png', viewer='BytesIO', outputbuffer=buffer)
+        buffer.seek(0)
+
+        return 0, buffer
 
     def lookup_label(self, label):
         for p in self.__points:

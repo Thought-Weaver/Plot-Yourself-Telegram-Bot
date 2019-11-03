@@ -299,7 +299,8 @@ def list_plots_handler(bot, update, chat_data):
 
     text = "Current plots:\n\n"
     for key in chat_data.keys():
-        text += "(" + str(key) + "): " + str(chat_data[key].get_name()) + "\n"
+        if isinstance(key, int):
+            text += "(" + str(key) + "): " + str(chat_data[key].get_name()) + "\n"
     send_message(bot, chat_id, text)
 
 
@@ -668,10 +669,22 @@ def complete_bet_handler(bot, update, chat_data):
 
         if chat_data.get("scoreboard") is None:
             chat_data["scoreboard"] = {}
+        if chat_data.get("scoreboard_avg") is None:
+            chat_data["scoreboard_avg"] = {}
+
         if chat_data["scoreboard"].get(best) is None:
             chat_data["scoreboard"][best] = 1
         else:
             chat_data["scoreboard"][best] += 1
+
+        if chat_data["scoreboard_avg"].get(best) is None:
+            chat_data["scoreboard_avg"][best] = best_diff
+        else:
+            # sum(x_i) / (n - 1) is currently stored.
+            # (sum(x_i) + y) / n (n - 1) / (n - 1) clearly gives desired result.
+            chat_data["scoreboard_avg"][best] *= chat_data["scoreboard"][best] - 1
+            chat_data["scoreboard_avg"][best] += best_diff
+            chat_data["scoreboard_avg"][best] /= chat_data["scoreboard"][best]
 
     chat_data["current_bet"] = None
 
@@ -688,9 +701,46 @@ def scoreboard_handler(bot, update, chat_data):
 
     text = "Top 3 Scoreboard:\n\n"
     for i in highest:
-        text += str(i[0]) + ": " + str(i[1]) + "\n"
+        text += str(i[0]) + ": " + str(i[1]) + " with Avg Diff: " + str(chat_data["scoreboard_avg"][str(i[0])]) + "\n"
 
     send_message(bot, chat_id, text)
+
+
+def equation_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+
+    # Args are: plot_id {optional degree}
+    if len(args) == 0 or len(args) > 2:
+        send_message(bot, chat_id, "usage: /equation {plot_id} {optional degree}")
+        return
+
+    try:
+        plot_id = int(args[0])
+        deg = 1 if len(args) < 2 else int(args[1])
+    except ValueError:
+        send_message(bot, chat_id, "All input arguments must be integers!")
+        return
+
+    plot = chat_data.get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    if deg < 0:
+        send_message(bot, chat_id, "Degree must be non-negative!")
+        return
+
+    result = plot.full_equation(deg)
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        bot.send_photo(chat_id=chat_id, photo=result[1])
 
 
 def handle_error(bot, update, error):
@@ -727,6 +777,7 @@ if __name__ == "__main__":
     cancel_bet_aliases = ["cancelbet"]
     complete_bet_aliases = ["completebet", "cb", "rollthedice"]
     scoreboard_aliases = ["scoreboard", "tellmeimwinning", "scores", "tops"]
+    equation_aliases = ["equation", "eq", "fuckrounding"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -743,7 +794,8 @@ if __name__ == "__main__":
                 ("my_bet", 2, my_bet_aliases),
                 ("cancel_bet", 1, cancel_bet_aliases),
                 ("complete_bet", 1, complete_bet_aliases),
-                ("scoreboard", 1, scoreboard_aliases)]
+                ("scoreboard", 1, scoreboard_aliases),
+                ("equation", 2, equation_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

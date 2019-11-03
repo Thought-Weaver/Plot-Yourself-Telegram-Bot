@@ -8,3 +8,4 @@ New Features:
 Bug Fixes:
 
 -Partially fixed sympy equation display. It's a strange rounding problem.
+-Fixed an issue with /listplots.
