@@ -740,7 +740,8 @@ def equation_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, result[1])
         return
     elif result[0] == 0:
-        bot.send_photo(chat_id=chat_id, photo=result[1])
+        send_message(bot, chat_id, result[1])
+        #bot.send_photo(chat_id=chat_id, photo=result[1])
 
 
 def handle_error(bot, update, error):

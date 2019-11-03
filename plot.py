@@ -179,17 +179,17 @@ class Plot:
         poly = sum(S("{:f}".format(v)) * x ** i for i, v in enumerate(p))
         eq_latex = printing.latex(poly)
 
-        fig = plt.figure()
-        plt.grid(False)
-        plt.axis('off')
-        plt.tight_layout()
-        plt.text(0, 0.5, r"$%s$" % eq_latex, fontsize="medium", wrap=True)
+        #fig = plt.figure()
+        #plt.grid(False)
+        #plt.axis('off')
+        #plt.tight_layout()
+        #plt.text(0, 0.5, r"$%s$" % eq_latex, fontsize="medium", wrap=True)
 
-        buffer = BytesIO()
-        fig.savefig(buffer, format="png")
-        buffer.seek(0)
+        #buffer = BytesIO()
+        #fig.savefig(buffer, format="png")
+        #buffer.seek(0)
 
-        return 0, buffer
+        return 0, eq_latex
 
     def lookup_label(self, label):
         for p in self.__points:
@@ -411,17 +411,17 @@ class BoxedPlot:
         poly = sum(S("{:f}".format(v)) * x ** i for i, v in enumerate(p))
         eq_latex = printing.latex(poly)
 
-        fig = plt.figure()
-        plt.grid(False)
-        plt.axis('off')
-        plt.tight_layout()
-        plt.text(0, 0.5, r"$%s$" % eq_latex, fontsize="medium", wrap=True)
+        #fig = plt.figure()
+        #plt.grid(False)
+        #plt.axis('off')
+        #plt.tight_layout()
+        #plt.text(0, 0.5, r"$%s$" % eq_latex, fontsize="medium", wrap=True)
 
-        buffer = BytesIO()
-        fig.savefig(buffer, format="png")
-        buffer.seek(0)
+        #buffer = BytesIO()
+        #fig.savefig(buffer, format="png")
+        #buffer.seek(0)
 
-        return 0, buffer
+        return 0, eq_latex
 
     def lookup_label(self, label):
         for p in self.__points:
