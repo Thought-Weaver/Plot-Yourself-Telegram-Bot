@@ -701,6 +701,7 @@ def scoreboard_handler(bot, update, chat_data):
 
     text = "Top 3 Scoreboard:\n\n"
     for i in highest:
+        # Just in case, somehow, someone exists in scoreboard but not avg.
         if chat_data["scoreboard_avg"].get(str(i[0])) is None:
             chat_data["scoreboard_avg"][str(i[0])] = 0
         text += str(i[0]) + ": " + str(i[1]) + " with Avg Diff: " + str(chat_data["scoreboard_avg"][str(i[0])]) + "\n"
