@@ -197,6 +197,18 @@ class Plot:
                 return 0, (p[1], p[2])
         return 1, "Name not found on that plot."
 
+    def edit_plot(self, plot_args):
+        self.__name = " ".join(plot_args.get("title")) if plot_args.get("title") is not None else self.__name
+        self.__xaxisright = " ".join(plot_args.get("xright")) if plot_args.get("xright") is not None else self.__xaxisright
+        self.__xaxisleft = " ".join(plot_args.get("xleft")) if plot_args.get("xleft") is not None else self.__xaxisleft
+        self.__yaxistop = " ".join(plot_args.get("ytop")) if plot_args.get("ytop") is not None else self.__yaxistop
+        self.__yaxisbottom = " ".join(plot_args.get("ybottom")) if plot_args.get("ybottom") is not None else self.__yaxisbottom
+        self.__minx = plot_args.get("minx") if plot_args.get("minx") is not None else self.__minx
+        self.__maxx = plot_args.get("maxx") if plot_args.get("maxx") is not None else self.__maxx
+        self.__miny = plot_args.get("miny") if plot_args.get("miny") is not None else self.__miny
+        self.__maxy = plot_args.get("maxy") if plot_args.get("maxy") is not None else self.__maxy
+        self.__custompoints = plot_args.get("custompoints") if plot_args.get("custompoints") is not None else self.__custompoints
+
     def get_name(self):
         return self.__name
 
@@ -428,6 +440,24 @@ class BoxedPlot:
             if p[0] == label:
                 return 0, (p[1], p[2])
         return 1, "Name not found on that plot."
+
+    def edit_plot(self, plot_args):
+        self.__name = " ".join(plot_args.get("title")) if plot_args.get("title") is not None else self.__name
+        self.__horiz = [
+            " ".join(plot_args.get("horiz1")) if plot_args.get("horiz1") is not None else self.__horiz[0],
+            " ".join(plot_args.get("horiz2")) if plot_args.get("horiz2") is not None else self.__horiz[1],
+            " ".join(plot_args.get("horiz3")) if plot_args.get("horiz3") is not None else self.__horiz[2]
+        ]
+        self.__vert = [
+            " ".join(plot_args.get("vert1")) if plot_args.get("vert1") is not None else self.__vert[0],
+            " ".join(plot_args.get("vert2")) if plot_args.get("vert2") is not None else self.__vert[1],
+            " ".join(plot_args.get("vert3")) if plot_args.get("vert3") is not None else self.__vert[2]
+        ]
+        self.__minx = plot_args.get("minx") if plot_args.get("minx") is not None else self.__minx
+        self.__maxx = plot_args.get("maxx") if plot_args.get("maxx") is not None else self.__maxx
+        self.__miny = plot_args.get("miny") if plot_args.get("miny") is not None else self.__miny
+        self.__maxy = plot_args.get("maxy") if plot_args.get("maxy") is not None else self.__maxy
+        self.__custompoints = plot_args.get("custompoints") if plot_args.get("custompoints") is not None else self.__custompoints
 
     def get_name(self):
         return self.__name

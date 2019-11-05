@@ -1,11 +1,6 @@
-Patch Notes (11/2/2019):
+Patch Notes (11/4/2019):
 
 New Features:
 
--Updated polyfit to recommended version.
--Added /scoreboard to display the top 3 correlation guessers!
-
-Bug Fixes:
-
--Partially fixed sympy equation display. It's a strange rounding problem.
--Fixed an issue with /listplots.
+-Added /editplot {plot_id} {args} for editing plots.
+-Added /currentbet for seeing the current bet.

@@ -24,25 +24,17 @@ ARG_PARSER.add_argument("-xr", "--xright", type=str, nargs='*')
 ARG_PARSER.add_argument("-xl", "--xleft", type=str, nargs='*')
 ARG_PARSER.add_argument("-yt", "--ytop", type=str, nargs='*')
 ARG_PARSER.add_argument("-yb", "--ybottom", type=str, nargs='*')
+ARG_PARSER.add_argument("-h1", "--horiz1", type=str, nargs='*')
+ARG_PARSER.add_argument("-h2", "--horiz2", type=str, nargs='*')
+ARG_PARSER.add_argument("-h3", "--horiz3", type=str, nargs='*')
+ARG_PARSER.add_argument("-v1", "--vert1", type=str, nargs='*')
+ARG_PARSER.add_argument("-v2", "--vert2", type=str, nargs='*')
+ARG_PARSER.add_argument("-v3", "--vert3", type=str, nargs='*')
 ARG_PARSER.add_argument("-mx", "--minx", type=int)
 ARG_PARSER.add_argument("-Mx", "--maxx", type=int)
 ARG_PARSER.add_argument("-my", "--miny", type=int)
 ARG_PARSER.add_argument("-My", "--maxy", type=int)
 ARG_PARSER.add_argument("--custompoints", action="store_true")
-
-BOX_ARG_PARSER = argparse.ArgumentParser(description="The parser for creating plots.")
-BOX_ARG_PARSER.add_argument("-t", "--title", type=str, nargs='*')
-BOX_ARG_PARSER.add_argument("-h1", "--horiz1", type=str, nargs='*')
-BOX_ARG_PARSER.add_argument("-h2", "--horiz2", type=str, nargs='*')
-BOX_ARG_PARSER.add_argument("-h3", "--horiz3", type=str, nargs='*')
-BOX_ARG_PARSER.add_argument("-v1", "--vert1", type=str, nargs='*')
-BOX_ARG_PARSER.add_argument("-v2", "--vert2", type=str, nargs='*')
-BOX_ARG_PARSER.add_argument("-v3", "--vert3", type=str, nargs='*')
-BOX_ARG_PARSER.add_argument("-mx", "--minx", type=int)
-BOX_ARG_PARSER.add_argument("-Mx", "--maxx", type=int)
-BOX_ARG_PARSER.add_argument("-my", "--miny", type=int)
-BOX_ARG_PARSER.add_argument("-My", "--maxy", type=int)
-BOX_ARG_PARSER.add_argument("--custompoints", action="store_true")
 
 def send_message(bot, chat_id, text):
     try:
@@ -77,12 +69,6 @@ def create_plot_handler(bot, update, chat_data, args):
         plot_args = vars(parsed)
     except SystemExit:
         send_message(bot, chat_id, "That is not a valid argument list. See /help.")
-        return
-
-    if len(plot_args.keys()) > 10:
-        send_message(bot, chat_id, "usage (all args optional): /createplot {title} {x_axis_right_label} "
-                                   "{x_axis_left_label} {y_axis_top_label} {y_axis_bottom_label}"
-                                   "{min_x_value} {max_x_value} {min_y_value} {max_y_value} {--custompoints}")
         return
 
     # I have two options as I see it:
@@ -481,18 +467,10 @@ def boxed_plot_handler(bot, update, chat_data, args):
             username += user.last_name
 
     try:
-        parsed = BOX_ARG_PARSER.parse_args(args)
+        parsed = ARG_PARSER.parse_args(args)
         plot_args = vars(parsed)
     except SystemExit:
         send_message(bot, chat_id, "That is not a valid argument list. See /help.")
-        return
-
-    if len(plot_args.keys()) > 12:
-        send_message(bot, chat_id, "usage (all args optional): /boxedplot --title {title} "
-                                   "--horiz2 {h1} --horiz2 {h2} --horiz3 {h3} "
-                                   "--vert1 {v1} --vert2 {v2} --vert3 {v3} "
-                                   "--xmin {xmin} --xmax {xmax} --ymin {ymin} --ymax {ymax} "
-                                   "--custompoints")
         return
 
     horiz = [
@@ -747,6 +725,75 @@ def equation_handler(bot, update, chat_data, args):
         #bot.send_photo(chat_id=chat_id, photo=result[1])
 
 
+def edit_plot_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    if len(args) <= 1:
+        send_message(bot, chat_id, "usage: /editplot {plot_id} --title {t} --xright {xr} "
+                                   "--xleft {xl} --ytop {yt} --ybottom {yb}"
+                                   "--horiz2 {h1} --horiz2 {h2} --horiz3 {h3} "
+                                   "--vert1 {v1} --vert2 {v2} --vert3 {v3} "
+                                   "--minx {mx} --maxx {Mx} --miny {my} --maxy {My} {--custompoints}")
+        return
+
+    try:
+        plot_id = int(args[0])
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID must be an integer!")
+        return
+
+    plot = chat_data.get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    if str(plot.get_creator()) != str(username):
+        send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
+        return
+
+    try:
+        parsed = ARG_PARSER.parse_args(args[1:])
+        plot_args = vars(parsed)
+    except SystemExit:
+        send_message(bot, chat_id, "That is not a valid argument list. See /help.")
+        return
+
+    plot.edit_plot(plot_args)
+    send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been updated!")
+
+
+def current_bet_handler(bot, update, chat_data):
+    chat_id = update.message.chat.id
+
+    if chat_data.get("current_bet") is None:
+        send_message(bot, chat_id, "No bet currently exists!")
+        return
+
+    send_message(bot, chat_id, "The following bet is in progress:\n\nPlot ID: " +
+                 str(chat_data["current_bet"]["plot_id"]) + "\nDegree: " +
+                 str(chat_data["current_bet"]["degree"]))
+
+    if chat_data["current_bet"]["bets"] is None or len(chat_data["current_bet"]["bets"].keys()) == 0:
+        send_message(bot, chat_id, "No one has yet placed a bet!")
+        return
+
+    text = "Current Bets:\n\n"
+    for key in chat_data["current_bet"]["bets"].keys():
+        text += str(key) + ": " + str(chat_data["current_bet"]["bets"][key]) + "\n"
+    send_message(bot, chat_id, text)
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -782,6 +829,8 @@ if __name__ == "__main__":
     complete_bet_aliases = ["completebet", "cb", "rollthedice"]
     scoreboard_aliases = ["scoreboard", "tellmeimwinning", "scores", "tops"]
     equation_aliases = ["equation", "eq", "fuckrounding"]
+    edit_plot_aliases = ["editplot", "ep"]
+    current_bet_aliases = ["currentbet", "curbet", "curbit", "curb", "youmangycur"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -799,7 +848,9 @@ if __name__ == "__main__":
                 ("cancel_bet", 1, cancel_bet_aliases),
                 ("complete_bet", 1, complete_bet_aliases),
                 ("scoreboard", 1, scoreboard_aliases),
-                ("equation", 2, equation_aliases)]
+                ("equation", 2, equation_aliases),
+                ("edit_plot", 2, edit_plot_aliases),
+                ("current_bet", 1, current_bet_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:
