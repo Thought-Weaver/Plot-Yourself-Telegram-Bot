@@ -21,6 +21,7 @@ scoreboard - Displays the top 3 correlation bet winners. (Aliases: tellmeimwinni
 equation - Displays the full equation for a fit of that plot. (Aliases: eq, fuckrounding)
 editplot - Updates the plot with the given args. (Aliases: ep)
 currentbet - Shows the current bet. (Aliases: curbet, curbit, curb, youmangycur)
+alignmentchart - Creates an alignment chart with custom box labels. (Aliases: ac)
 
 Argument lists for each are below:
 
@@ -35,7 +36,7 @@ Argument lists for each are below:
 /patchnotes
 /whomademe {plot_id}
 /custompoint {plot_id} {x} {y} {label}
-/boxedplot --title {title} --horiz2 {h1} --horiz2 {h2} --horiz3 {h3} --vert1 {v1} --vert2 {v2} --vert3 {v3} --xmin {xmin} --xmax {xmax} --ymin {ymin} --ymax {ymax} --custompoints
+/boxedplot --title {t} --horiz2 {h1} --horiz2 {h2} --horiz3 {h3} --vert1 {v1} --vert2 {v2} --vert3 {v3} --xmin {xmin} --xmax {xmax} --ymin {ymin} --ymax {ymax} --custompoints
 /setupbet {plot_id} {degree}
 /bet {r^2 value}
 /completebet
@@ -45,6 +46,7 @@ Argument lists for each are below:
 /equation {plot_id} {optional degree}
 /editplot {plot_id} {args}
 /currentbet
+/alignmentchart --title {t} --label1 {l1} --label2 {l2} --label3 {l3} --label3 {l3} --label4 {l4} --label5 {l5} --label6 {l6} --label7 {l7} --label8 {l8} --label9 {l9} --custompoints
 
 Note that all the arguments for /createplot and /boxedplot are optional. Also note that the default bounds on a plot are [-10, 10] on both axes. Here are a couple of examples:
 

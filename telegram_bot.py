@@ -11,7 +11,7 @@ import os
 import argparse
 from collections import Counter
 
-from plot import Plot, BoxedPlot
+from plot import Plot, BoxedPlot, AlignmentChart
 
 with open("api_key.txt", 'r') as f:
     TOKEN = f.read().rstrip()
@@ -30,6 +30,15 @@ ARG_PARSER.add_argument("-h3", "--horiz3", type=str, nargs='*')
 ARG_PARSER.add_argument("-v1", "--vert1", type=str, nargs='*')
 ARG_PARSER.add_argument("-v2", "--vert2", type=str, nargs='*')
 ARG_PARSER.add_argument("-v3", "--vert3", type=str, nargs='*')
+ARG_PARSER.add_argument("-l1", "--label1", type=str, nargs='*')
+ARG_PARSER.add_argument("-l2", "--label2", type=str, nargs='*')
+ARG_PARSER.add_argument("-l3", "--label3", type=str, nargs='*')
+ARG_PARSER.add_argument("-l4", "--label4", type=str, nargs='*')
+ARG_PARSER.add_argument("-l5", "--label5", type=str, nargs='*')
+ARG_PARSER.add_argument("-l6", "--label6", type=str, nargs='*')
+ARG_PARSER.add_argument("-l7", "--label7", type=str, nargs='*')
+ARG_PARSER.add_argument("-l8", "--label8", type=str, nargs='*')
+ARG_PARSER.add_argument("-l9", "--label9", type=str, nargs='*')
 ARG_PARSER.add_argument("-mx", "--minx", type=int)
 ARG_PARSER.add_argument("-Mx", "--maxx", type=int)
 ARG_PARSER.add_argument("-my", "--miny", type=int)
@@ -487,10 +496,6 @@ def boxed_plot_handler(bot, update, chat_data, args):
     plot = BoxedPlot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
                 horiz,
                 vert,
-                plot_args.get("minx") if plot_args.get("minx") is not None else -10,
-                plot_args.get("maxx") if plot_args.get("maxx") is not None else 10,
-                plot_args.get("miny") if plot_args.get("miny") is not None else -10,
-                plot_args.get("maxy") if plot_args.get("maxy") is not None else 10,
                 username,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
     chat_data[len(chat_data.keys()) + 1] = plot
@@ -794,6 +799,47 @@ def current_bet_handler(bot, update, chat_data):
     send_message(bot, chat_id, text)
 
 
+def alignment_chart_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    try:
+        parsed = ARG_PARSER.parse_args(args)
+        plot_args = vars(parsed)
+    except SystemExit:
+        send_message(bot, chat_id, "That is not a valid argument list. See /help.")
+        return
+
+    labels = [
+        " ".join(plot_args.get("label1")) if plot_args.get("label1") is not None else "",
+        " ".join(plot_args.get("label2")) if plot_args.get("label2") is not None else "",
+        " ".join(plot_args.get("label3")) if plot_args.get("label3") is not None else "",
+        " ".join(plot_args.get("label4")) if plot_args.get("label4") is not None else "",
+        " ".join(plot_args.get("label5")) if plot_args.get("label5") is not None else "",
+        " ".join(plot_args.get("label6")) if plot_args.get("label6") is not None else "",
+        " ".join(plot_args.get("label7")) if plot_args.get("label7") is not None else "",
+        " ".join(plot_args.get("label8")) if plot_args.get("label8") is not None else "",
+        " ".join(plot_args.get("label9")) if plot_args.get("label9") is not None else ""
+    ]
+
+    plot = AlignmentChart(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
+                labels,
+                username,
+                plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
+    chat_data[len(chat_data.keys()) + 1] = plot
+
+    send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) + " (" + str(len(chat_data.keys())) + ") was created successfully!")
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -831,6 +877,7 @@ if __name__ == "__main__":
     equation_aliases = ["equation", "eq", "fuckrounding"]
     edit_plot_aliases = ["editplot", "ep"]
     current_bet_aliases = ["currentbet", "curbet", "curbit", "curb", "youmangycur"]
+    alignment_chart_aliases = ["alignmentchart", "ac"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -850,7 +897,8 @@ if __name__ == "__main__":
                 ("scoreboard", 1, scoreboard_aliases),
                 ("equation", 2, equation_aliases),
                 ("edit_plot", 2, edit_plot_aliases),
-                ("current_bet", 1, current_bet_aliases)]
+                ("current_bet", 1, current_bet_aliases),
+                ("alignment_chart", 2, alignment_chart_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

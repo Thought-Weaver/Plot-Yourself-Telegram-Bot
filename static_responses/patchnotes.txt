@@ -1,6 +1,9 @@
-Patch Notes (11/4/2019):
+Patch Notes (11/5/2019):
 
 New Features:
 
--Added /editplot {plot_id} {args} for editing plots.
--Added /currentbet for seeing the current bet.
+-Added /alignmentchart to make a standard alignment chart with custom box labels.
+
+Bug Fixes:
+
+-Fixed a plot creation bug where long lists of args wouldn't be parsed.
