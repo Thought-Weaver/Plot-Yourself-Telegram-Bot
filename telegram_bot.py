@@ -1090,7 +1090,7 @@ if __name__ == "__main__":
     updater = Updater(token=TOKEN, persistence=pp)
     dispatcher = updater.dispatcher
 
-    static_commands = ["help", "patchnotes"]
+    static_commands = ["start", "help", "patchnotes"]
     for c in static_commands:
         dispatcher.add_handler(static_handler(c))
 

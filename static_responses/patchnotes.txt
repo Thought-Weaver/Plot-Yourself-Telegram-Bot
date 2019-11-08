@@ -8,6 +8,7 @@ New Features:
 -Regular plots will no longer display anything past their bounds.
 -Added /fulllistplots (/flp) to display a full list of plots, both archived and unarchived.
 -Added /myplots to send you a list of plots you've made.
+-Added /start as an initial startup helper for the bot! Think of it like a mini /help.
 
 Bug Fixes:
 

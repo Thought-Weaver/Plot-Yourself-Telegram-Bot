@@ -26,6 +26,7 @@ archive - Archives a plot, removing it from the list of plots. (Aliases: ap)
 unarchive - Unarchives a plot, adding back to the current list of plots. (Aliases: uap)
 fulllistplots - Displays the full list of plots, both archived and unarchived. (Aliases: flp)
 myplots - Sends you a list of all the plots you've made. (Aliases: mp)
+start - Sends a simple help message.
 
 Argument lists for each are below:
 
@@ -55,6 +56,7 @@ Argument lists for each are below:
 /unarchive {plot_id}
 /fulllistplots
 /myplots
+/start
 
 Note that all the arguments for /createplot and /boxedplot are optional. Also note that the default bounds on a plot are [-10, 10] on both axes. Here are a couple of examples:
 
