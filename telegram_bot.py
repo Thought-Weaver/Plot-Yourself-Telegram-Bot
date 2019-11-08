@@ -653,11 +653,9 @@ def my_bet_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "R^2 must be a float!")
         return
 
-    if chat_data["current_bet"].get("bets") is None:
-        chat_data["current_bet"]["bets"] = []
-
     # We assume there can only be one bet at a time. This has an associated degree and plot ID.
-    chat_data["current_bet"]["bets"] += [(username, R2)]
+    chat_data["current_bet"]["bets"] = list(chat_data["current_bet"]["bets"])
+    chat_data["current_bet"]["bets"].append((username, R2))
     send_message(bot, chat_id, "Your bet has been placed!")
 
 
@@ -697,7 +695,7 @@ def setup_bet_handler(bot, update, chat_data, args):
 
     chat_data["current_bet"] = { "plot_id" : plot_id,
                                  "degree"  : degree,
-                                 "bets"    : {} }
+                                 "bets"    : [] }
     send_message(bot, chat_id, "The following bet was created:\n\nPlot ID: " +
                  str(chat_data["current_bet"]["plot_id"]) + "\nDegree: " +
                  str(chat_data["current_bet"]["degree"]))
@@ -725,7 +723,7 @@ def complete_bet_handler(bot, update, chat_data):
         send_message(bot, chat_id, "No one has yet bet!")
         return
 
-    plot = chat_data.get(chat_data["current_bet"]["plot_id"])
+    plot = chat_data["plots"][chat_data["current_bet"]["plot_id"]]
     result = plot.polyfit(chat_data["current_bet"]["degree"])
 
     if result is None:
@@ -738,7 +736,7 @@ def complete_bet_handler(bot, update, chat_data):
         best = ""
         bestr2 = 0
         best_diff = 2e30
-        for (username, value) in chat_data["current_bet"]["bets"]:
+        for username, value in chat_data["current_bet"]["bets"]:
             diff = abs(value - result[1][1])
             if diff < best_diff:
                 best_diff = diff
