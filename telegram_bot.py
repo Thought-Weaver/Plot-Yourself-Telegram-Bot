@@ -115,7 +115,7 @@ def create_plot_handler(bot, update, chat_data, args):
                 plot_args.get("maxy") if plot_args.get("maxy") is not None else 10,
                 username,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    max_key = max(chat_data["plots"].keys())
+    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
     chat_data["plots"][max_key + 1] = plot
 
     send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
@@ -575,7 +575,7 @@ def boxed_plot_handler(bot, update, chat_data, args):
                 vert,
                 username,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    max_key = max(chat_data["plots"].keys())
+    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
     chat_data[max_key + 1] = plot
 
     send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
@@ -944,7 +944,7 @@ def alignment_chart_handler(bot, update, chat_data, args):
                 labels,
                 username,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    max_key = max(chat_data["plots"].keys())
+    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
     chat_data[max_key + 1] = plot
 
     send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
