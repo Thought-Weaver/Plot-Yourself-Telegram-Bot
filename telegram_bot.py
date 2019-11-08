@@ -333,8 +333,11 @@ def list_plots_handler(bot, update, chat_data):
     if chat_data.get("archived") is None:
         chat_data["archived"] = {}
 
+    # Plots that aren't archived.
+    cur_plots = dict(sorted({k:v for k, v in chat_data["plots"].items() if k not in chat_data["archived"]}.items()))
+
     text = "Current plots:\n\n"
-    for (key, value) in {k:v for k, v in chat_data["plots"].items() if k not in chat_data["archived"]}.items():
+    for (key, value) in cur_plots:
         if isinstance(key, int):
             text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
     send_message(bot, chat_id, text)
@@ -347,7 +350,7 @@ def full_list_plots_handler(bot, update, chat_data):
         chat_data["plots"] = {}
 
     text = "All plots:\n\n"
-    for (key, value) in chat_data["plots"].items():
+    for (key, value) in dict(sorted(chat_data["plots"].items())):
         if isinstance(key, int):
             text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
     send_message(bot, chat_id, text)
@@ -1080,7 +1083,6 @@ def my_plots_handler(bot, update, chat_data):
 def archive_all_handler(bot, update, chat_data):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    user_id = user.id
     username = ""
 
     if user.username is not None:
@@ -1103,13 +1105,12 @@ def archive_all_handler(bot, update, chat_data):
         if isinstance(key, int) and value.get_creator() == username and key not in chat_data["archived"].keys():
             chat_data["archived"][key] = value
 
-    send_message(bot, user_id, "Your plots have been archived.")
+    send_message(bot, chat_id, "Your plots have been archived.")
 
 
 def unarchive_all_handler(bot, update, chat_data):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    user_id = user.id
     username = ""
 
     if user.username is not None:
@@ -1132,7 +1133,7 @@ def unarchive_all_handler(bot, update, chat_data):
         if isinstance(key, int) and value.get_creator() == username and key in chat_data["archived"].keys():
             del chat_data["archived"][key]
 
-    send_message(bot, user_id, "Your plots have been unarchived.")
+    send_message(bot, chat_id, "Your plots have been unarchived.")
 
 
 def handle_error(bot, update, error):
