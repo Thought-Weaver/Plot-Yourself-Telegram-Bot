@@ -1055,6 +1055,9 @@ def unarchive_handler(bot, update, chat_data, args):
 
 
 def fixtheplots_handler(bot, update, chat_data):
+    if chat_data.get("plots") is not None:
+        send_message(bot, update.message.chat.id, "That's a nope from me friendo.")
+        return
     if chat_data.get("plots") is None:
         chat_data["plots"] = {}
     for (key, value) in chat_data.items():
