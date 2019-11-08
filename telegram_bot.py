@@ -9,7 +9,7 @@ import logging
 
 import os
 import argparse
-from collections import Counter
+from collections import Counter, OrderedDict
 
 from plot import Plot, BoxedPlot, AlignmentChart
 
@@ -334,7 +334,7 @@ def list_plots_handler(bot, update, chat_data):
         chat_data["archived"] = {}
 
     # Plots that aren't archived.
-    cur_plots = dict(sorted({k:v for k, v in chat_data["plots"].items() if k not in chat_data["archived"]}.items()))
+    cur_plots = OrderedDict(sorted({k:v for k, v in chat_data["plots"].items() if k not in chat_data["archived"]}.items()))
 
     text = "Current plots:\n\n"
     for (key, value) in cur_plots:
@@ -350,7 +350,7 @@ def full_list_plots_handler(bot, update, chat_data):
         chat_data["plots"] = {}
 
     text = "All plots:\n\n"
-    for (key, value) in dict(sorted(chat_data["plots"].items())):
+    for (key, value) in OrderedDict(sorted(chat_data["plots"].items())):
         if isinstance(key, int):
             text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
     send_message(bot, chat_id, text)
