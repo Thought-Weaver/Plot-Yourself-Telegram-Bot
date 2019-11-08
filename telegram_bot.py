@@ -1054,18 +1054,6 @@ def unarchive_handler(bot, update, chat_data, args):
     send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been unarchived!")
 
 
-def fixtheplots_handler(bot, update, chat_data):
-    if chat_data.get("plots") is not None:
-        send_message(bot, update.message.chat.id, "That's a nope from me friendo.")
-        return
-    if chat_data.get("plots") is None:
-        chat_data["plots"] = {}
-    for (key, value) in chat_data.items():
-        if isinstance(key, int):
-            chat_data["plots"][key] = value
-    send_message(bot, update.message.chat.id, "They've been fixed.")
-
-
 def handle_error(bot, update, error):
     try:
         raise error
@@ -1130,8 +1118,7 @@ if __name__ == "__main__":
                 ("alignment_chart", 2, alignment_chart_aliases),
                 ("archive", 2, archive_aliases),
                 ("unarchive", 2, unarchive_aliases),
-                ("full_list_plots", 1, full_list_plots_aliases),
-                ("fixtheplots", 1, ["fixtheplots", "ftp"])]
+                ("full_list_plots", 1, full_list_plots_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:
