@@ -97,6 +97,9 @@ class Plot:
         if self.__name is not None:
             plt.title(str(self.__name))
 
+        plt.xlim(left=self.__minx, right=self.__maxx)
+        plt.ylim(bottom=self.__miny, top=self.__maxy)
+
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
         buffer.seek(0)

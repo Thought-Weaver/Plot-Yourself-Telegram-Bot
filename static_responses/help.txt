@@ -22,6 +22,9 @@ equation - Displays the full equation for a fit of that plot. (Aliases: eq, fuck
 editplot - Updates the plot with the given args. (Aliases: ep)
 currentbet - Shows the current bet. (Aliases: curbet, curbit, curb, youmangycur)
 alignmentchart - Creates an alignment chart with custom box labels. (Aliases: ac)
+archive - Archives a plot, removing it from the list of plots. (Aliases: ap)
+unarchive - Unarchives a plot, adding back to the current list of plots. (Aliases: uap)
+fulllistplots - Displays the full list of plots, both archived and unarchived. (Aliases: flp)
 
 Argument lists for each are below:
 
@@ -47,6 +50,9 @@ Argument lists for each are below:
 /editplot {plot_id} {args}
 /currentbet
 /alignmentchart --title {t} --label1 {l1} --label2 {l2} --label3 {l3} --label3 {l3} --label4 {l4} --label5 {l5} --label6 {l6} --label7 {l7} --label8 {l8} --label9 {l9} --custompoints
+/archive {plot_id}
+/unarchive {plot_id}
+/fulllistplots
 
 Note that all the arguments for /createplot and /boxedplot are optional. Also note that the default bounds on a plot are [-10, 10] on both axes. Here are a couple of examples:
 

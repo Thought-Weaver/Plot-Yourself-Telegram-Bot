@@ -1,9 +1,16 @@
-Patch Notes (11/5/2019):
+Patch Notes (11/7/2019):
 
 New Features:
 
--Added /alignmentchart to make a standard alignment chart with custom box labels.
+-/help now sends the help information by direct message from the bot.
+-Added /archive and /unarchive for archiving and unarchiving plots. Archived plots do not appear in /listplots.
+-/plotme and /removeme now auto-select the most recent plot if a plot ID is not specified.
+-Regular plots will no longer display anything past their bounds.
+-Added /fulllistplots (/flp) to display a full list of plots, both archived and unarchived.
 
 Bug Fixes:
 
--Fixed a plot creation bug where long lists of args wouldn't be parsed.
+-Fixed a bug where the last person who bet the same value would win, rather than the first.
+-Fixed a bug where /currentbet wouldn't send a message if no one had bet.
+-Fixed a bug where /completebet wouldn't check to see if anyone had actually bet yet.
+-Fixed a bug where you could override plots by creating new ones if one had been deleted.

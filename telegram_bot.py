@@ -55,6 +55,9 @@ def send_message(bot, chat_id, text):
 
 def static_handler(command):
     text = open("static_responses/{}.txt".format(command), "r").read()
+    if command == "help":
+        return CommandHandler(command,
+                              lambda bot, update: send_message(bot, update.message.from_user.id, text))
 
     return CommandHandler(command,
         lambda bot, update: send_message(bot, update.message.chat.id, text))
@@ -98,6 +101,9 @@ def create_plot_handler(bot, update, chat_data, args):
     # (8) min y value
     # (9) max y value
 
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+
     plot = Plot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
                 " ".join(plot_args.get("xright")) if plot_args.get("xright") is not None else None,
                 " ".join(plot_args.get("xleft")) if plot_args.get("xleft") is not None else None,
@@ -109,9 +115,11 @@ def create_plot_handler(bot, update, chat_data, args):
                 plot_args.get("maxy") if plot_args.get("maxy") is not None else 10,
                 username,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    chat_data[len(chat_data.keys()) + 1] = plot
+    max_key = max(chat_data["plots"].keys())
+    chat_data["plots"][max_key + 1] = plot
 
-    send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) + " (" + str(len(chat_data.keys())) + ") was created successfully!")
+    send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
+                                   " (" + str(max_key + 1) + ") was created successfully!")
 
 
 def remove_plot_handler(bot, update, chat_data, args):
@@ -137,7 +145,11 @@ def remove_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "The plot ID must be an integer!")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -147,7 +159,9 @@ def remove_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
         return
 
-    del chat_data[plot_id]
+    del chat_data["plots"][plot_id]
+    if chat_data.get("archived") is not None and chat_data["archived"].get(plot_id) is not None:
+        del chat_data["archived"][plot_id]
     send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been removed!")
 
 
@@ -164,20 +178,29 @@ def plot_me_handler(bot, update, chat_data, args):
         if user.last_name is not None:
             username += user.last_name
 
-    # Args are: plot_id, x, y
-    if len(args) != 3:
+    # Args are: {plot_id, but defaults to max key in non-archived plots}, x, y
+    if len(args) < 2 or len(args) > 3:
         send_message(bot, chat_id, "usage: /plotme {plot_id} {x} {y}")
         return
 
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
     try:
-        plot_id = int(args[0])
-        x = float(args[1])
-        y = float(args[2])
+        # Select the most recent (max) key from plots that aren't archived by default.
+        plot_id = int(args[0]) if len(args) == 3 else int(max({k:v for k, v in chat_data["plots"].items()
+                                                               if k not in chat_data["archived"]}.keys()))
+        x = float(args[1] if len(args) == 3 else args[0])
+        y = float(args[2] if len(args) == 3 else args[1])
     except ValueError:
         send_message(bot, chat_id, "Plot ID must be an int and x, y must be floats!")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -218,17 +241,25 @@ def remove_me_handler(bot, update, chat_data, args):
             username += user.last_name
 
     # Args are: plot_id
-    if len(args) != 1:
+    if len(args) > 1:
         send_message(bot, chat_id, "usage: /removeme {plot_id}")
         return
 
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
     try:
-        plot_id = int(args[0])
+        plot_id = int(args[0]) if len(args) == 1 else int(max({k:v for k, v in chat_data["plots"].items()
+                                                               if k not in chat_data["archived"]}.keys()))
     except ValueError:
         send_message(bot, chat_id, "The plot ID must be an integer!")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -270,7 +301,11 @@ def show_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "The plot ID and optional toggle must be an integer!")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -292,10 +327,32 @@ def show_plot_handler(bot, update, chat_data, args):
 def list_plots_handler(bot, update, chat_data):
     chat_id = update.message.chat.id
 
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
     text = "Current plots:\n\n"
-    for key in chat_data.keys():
+    for (key, value) in {k:v for k, v in chat_data["plots"].items() if k not in chat_data["archived"]}.items():
         if isinstance(key, int):
-            text += "(" + str(key) + "): " + str(chat_data[key].get_name()) + "\n"
+            text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
+    send_message(bot, chat_id, text)
+
+
+def full_list_plots_handler(bot, update, chat_data):
+    chat_id = update.message.chat.id
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
+    text = "All plots:\n\n"
+    for (key, value) in chat_data["plots"].items():
+        if isinstance(key, int):
+            text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
     send_message(bot, chat_id, text)
 
 
@@ -313,7 +370,12 @@ def get_plot_stats_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "The plot ID must be an integer!")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -347,7 +409,12 @@ def polyfit_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "All input arguments must be integers!")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -391,7 +458,12 @@ def whomademe_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "The plot ID must be an integer!")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -427,7 +499,12 @@ def custom_point_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "Plot ID must be an int and x, y must be floats.")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -482,6 +559,9 @@ def boxed_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That is not a valid argument list. See /help.")
         return
 
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+
     horiz = [
         " ".join(plot_args.get("horiz1")) if plot_args.get("horiz1") is not None else "",
         " ".join(plot_args.get("horiz2")) if plot_args.get("horiz2") is not None else "",
@@ -498,9 +578,11 @@ def boxed_plot_handler(bot, update, chat_data, args):
                 vert,
                 username,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    chat_data[len(chat_data.keys()) + 1] = plot
+    max_key = max(chat_data["plots"].keys())
+    chat_data[max_key + 1] = plot
 
-    send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) + " (" + str(len(chat_data.keys())) + ") was created successfully!")
+    send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
+                                   " (" + str(max_key + 1) + ") was created successfully!")
 
 
 def lookup_handler(bot, update, chat_data, args):
@@ -518,7 +600,12 @@ def lookup_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "Plot ID must be an int and name must be a string.")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -566,8 +653,11 @@ def my_bet_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "R^2 must be a float!")
         return
 
+    if chat_data["current_bet"].get("bets") is None:
+        chat_data["current_bet"]["bets"] = []
+
     # We assume there can only be one bet at a time. This has an associated degree and plot ID.
-    chat_data["current_bet"]["bets"][username] = R2
+    chat_data["current_bet"]["bets"] += [(username, R2)]
     send_message(bot, chat_id, "Your bet has been placed!")
 
 
@@ -592,7 +682,12 @@ def setup_bet_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "Plot ID and degree must both be integers!")
         return
 
-    if chat_data.get(plot_id) is None:
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot does not exist!")
+        return
+
+    if chat_data["plots"].get(plot_id) is None:
         send_message(bot, chat_id, "That plot does not exist!")
         return
 
@@ -626,6 +721,10 @@ def complete_bet_handler(bot, update, chat_data):
         send_message(bot, chat_id, "No bet currently exists!")
         return
 
+    if chat_data["current_bet"].get("bets") is None or len(chat_data["current_bet"]["bets"]) == 0:
+        send_message(bot, chat_id, "No one has yet bet!")
+        return
+
     plot = chat_data.get(chat_data["current_bet"]["plot_id"])
     result = plot.polyfit(chat_data["current_bet"]["degree"])
 
@@ -639,12 +738,12 @@ def complete_bet_handler(bot, update, chat_data):
         best = ""
         bestr2 = 0
         best_diff = 2e30
-        for key in chat_data["current_bet"]["bets"].keys():
-            diff = abs(chat_data["current_bet"]["bets"][key] - result[1][1])
+        for (username, value) in chat_data["current_bet"]["bets"]:
+            diff = abs(value - result[1][1])
             if diff < best_diff:
                 best_diff = diff
-                best = key
-                bestr2 = chat_data["current_bet"]["bets"][key]
+                best = username
+                bestr2 = value
 
         bot.send_photo(chat_id=chat_id, photo=result[1][0])
         send_message(bot, chat_id, "Actual R^2: " + str(result[1][1]))
@@ -707,7 +806,12 @@ def equation_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "All input arguments must be integers!")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -757,7 +861,12 @@ def edit_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "Plot ID must be an integer!")
         return
 
-    plot = chat_data.get(plot_id)
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
@@ -789,13 +898,13 @@ def current_bet_handler(bot, update, chat_data):
                  str(chat_data["current_bet"]["plot_id"]) + "\nDegree: " +
                  str(chat_data["current_bet"]["degree"]))
 
-    if chat_data["current_bet"]["bets"] is None or len(chat_data["current_bet"]["bets"].keys()) == 0:
+    if chat_data["current_bet"].get("bets") is None or len(chat_data["current_bet"]["bets"]) == 0:
         send_message(bot, chat_id, "No one has yet placed a bet!")
         return
 
     text = "Current Bets:\n\n"
-    for key in chat_data["current_bet"]["bets"].keys():
-        text += str(key) + ": " + str(chat_data["current_bet"]["bets"][key]) + "\n"
+    for (username, value) in chat_data["current_bet"]["bets"]:
+        text += str(username) + ": " + str(value) + "\n"
     send_message(bot, chat_id, text)
 
 
@@ -819,6 +928,9 @@ def alignment_chart_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That is not a valid argument list. See /help.")
         return
 
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+
     labels = [
         " ".join(plot_args.get("label1")) if plot_args.get("label1") is not None else "",
         " ".join(plot_args.get("label2")) if plot_args.get("label2") is not None else "",
@@ -835,9 +947,120 @@ def alignment_chart_handler(bot, update, chat_data, args):
                 labels,
                 username,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    chat_data[len(chat_data.keys()) + 1] = plot
+    max_key = max(chat_data["plots"].keys())
+    chat_data[max_key + 1] = plot
 
-    send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) + " (" + str(len(chat_data.keys())) + ") was created successfully!")
+    send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
+                                   " (" + str(max_key + 1) + ") was created successfully!")
+
+
+def archive_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    if len(args) != 1:
+        send_message(bot, chat_id, "usage: /archive {plot_id}")
+        return
+
+    try:
+        plot_id = int(args[0])
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID must be an integer!")
+        return
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    if str(plot.get_creator()) != str(username):
+        send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
+        return
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
+    if plot_id in chat_data["archived"].keys():
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") has already been archived!")
+        return
+
+    chat_data["archived"][plot_id] = chat_data["plots"][plot_id]
+    send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been archived!")
+
+
+def unarchive_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    if len(args) != 1:
+        send_message(bot, chat_id, "usage: /unarchive {plot_id}")
+        return
+
+    try:
+        plot_id = int(args[0])
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID must be an integer!")
+        return
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    if str(plot.get_creator()) != str(username):
+        send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
+        return
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+        send_message(bot, chat_id, "There aren't any archived plots!")
+        return
+
+    if plot_id not in chat_data["archived"].keys():
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") has not been archived!")
+        return
+
+    del chat_data["plots"][plot_id]
+    send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been unarchived!")
+
+
+def fixtheplots_handler(bot, update, chat_data):
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+    for (key, value) in chat_data.items():
+        if isinstance(key, int):
+            chat_data["plots"][key] = value
+    send_message(bot, update.message.chat.id, "They've been fixed.")
 
 
 def handle_error(bot, update, error):
@@ -878,6 +1101,9 @@ if __name__ == "__main__":
     edit_plot_aliases = ["editplot", "ep"]
     current_bet_aliases = ["currentbet", "curbet", "curbit", "curb", "youmangycur"]
     alignment_chart_aliases = ["alignmentchart", "ac"]
+    archive_aliases = ["archive", "ap"]
+    unarchive_aliases = ["unarchive", "uap"]
+    full_list_plots_aliases = ["fulllistplots", "flp"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -898,7 +1124,11 @@ if __name__ == "__main__":
                 ("equation", 2, equation_aliases),
                 ("edit_plot", 2, edit_plot_aliases),
                 ("current_bet", 1, current_bet_aliases),
-                ("alignment_chart", 2, alignment_chart_aliases)]
+                ("alignment_chart", 2, alignment_chart_aliases),
+                ("archive", 2, archive_aliases),
+                ("unarchive", 2, unarchive_aliases),
+                ("full_list_plots", 1, full_list_plots_aliases),
+                ("fixtheplots", 1, ["fixtheplots", "ftp"])]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:
