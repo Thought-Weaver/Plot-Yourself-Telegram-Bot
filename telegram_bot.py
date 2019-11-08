@@ -1077,6 +1077,64 @@ def my_plots_handler(bot, update, chat_data):
     send_message(bot, user_id, text)
 
 
+def archive_all_handler(bot, update, chat_data):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    user_id = user.id
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "No plots currently exist!")
+        return
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
+    for (key, value) in chat_data["plots"].items():
+        if isinstance(key, int) and value.get_creator() == username and key not in chat_data["archived"].keys():
+            chat_data["archived"][key] = value
+
+    send_message(bot, user_id, "Your plots have been archived.")
+
+
+def unarchive_all_handler(bot, update, chat_data):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    user_id = user.id
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "No plots currently exist!")
+        return
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
+    for (key, value) in chat_data["plots"].items():
+        if isinstance(key, int) and value.get_creator() == username and key in chat_data["archived"].keys():
+            del chat_data["archived"][key]
+
+    send_message(bot, user_id, "Your plots have been unarchived.")
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -1119,6 +1177,8 @@ if __name__ == "__main__":
     unarchive_aliases = ["unarchive", "uap"]
     full_list_plots_aliases = ["fulllistplots", "flp"]
     my_plots_aliases = ["myplots", "mp"]
+    archive_all_aliases = ["archiveall", "aap"]
+    unarchive_all_aliases = ["unarchiveall", "uapp"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1143,7 +1203,9 @@ if __name__ == "__main__":
                 ("archive", 2, archive_aliases),
                 ("unarchive", 2, unarchive_aliases),
                 ("full_list_plots", 1, full_list_plots_aliases),
-                ("my_plots", 1, my_plots_aliases)]
+                ("my_plots", 1, my_plots_aliases),
+                ("archive_all", 1, archive_all_aliases),
+                ("unarchive_all", 1, unarchive_all_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

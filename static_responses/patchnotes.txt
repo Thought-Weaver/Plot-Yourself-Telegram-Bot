@@ -1,4 +1,4 @@
-Patch Notes (11/7/2019):
+Patch Notes (11/8/2019):
 
 New Features:
 
@@ -9,6 +9,7 @@ New Features:
 -Added /fulllistplots (/flp) to display a full list of plots, both archived and unarchived.
 -Added /myplots to send you a list of plots you've made.
 -Added /start as an initial startup helper for the bot! Think of it like a mini /help.
+-Added /archiveall and /unarchiveall to archive and unarchive all your plots.
 
 Bug Fixes:
 
