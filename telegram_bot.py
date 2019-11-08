@@ -346,9 +346,6 @@ def full_list_plots_handler(bot, update, chat_data):
     if chat_data.get("plots") is None:
         chat_data["plots"] = {}
 
-    if chat_data.get("archived") is None:
-        chat_data["archived"] = {}
-
     text = "All plots:\n\n"
     for (key, value) in chat_data["plots"].items():
         if isinstance(key, int):
@@ -1054,6 +1051,32 @@ def unarchive_handler(bot, update, chat_data, args):
     send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been unarchived!")
 
 
+def my_plots_handler(bot, update, chat_data):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    user_id = user.id
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "No plots currently exist!")
+        return
+
+    text = "Your plots:\n\n"
+    for (key, value) in chat_data["plots"].items():
+        if isinstance(key, int) and value.get_creator() == username:
+            text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
+    send_message(bot, user_id, text)
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -1095,6 +1118,7 @@ if __name__ == "__main__":
     archive_aliases = ["archive", "ap"]
     unarchive_aliases = ["unarchive", "uap"]
     full_list_plots_aliases = ["fulllistplots", "flp"]
+    my_plots_aliases = ["myplots", "mp"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1118,7 +1142,8 @@ if __name__ == "__main__":
                 ("alignment_chart", 2, alignment_chart_aliases),
                 ("archive", 2, archive_aliases),
                 ("unarchive", 2, unarchive_aliases),
-                ("full_list_plots", 1, full_list_plots_aliases)]
+                ("full_list_plots", 1, full_list_plots_aliases),
+                ("my_plots", 1, my_plots_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

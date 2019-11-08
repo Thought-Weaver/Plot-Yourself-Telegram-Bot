@@ -7,6 +7,7 @@ New Features:
 -/plotme and /removeme now auto-select the most recent plot if a plot ID is not specified.
 -Regular plots will no longer display anything past their bounds.
 -Added /fulllistplots (/flp) to display a full list of plots, both archived and unarchived.
+-Added /myplots to send you a list of plots you've made.
 
 Bug Fixes:
 
