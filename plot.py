@@ -245,6 +245,9 @@ class Plot:
     def get_if_custom_points(self):
         return self.__custompoints
 
+    def get_points(self):
+        return self.__points
+
 
 class BoxedPlot:
     # We'll define horiz = [h1, h2, h3], vertical = [v1, v2, v3]
@@ -485,6 +488,9 @@ class BoxedPlot:
     def get_if_custom_points(self):
         return self.__custompoints
 
+    def get_points(self):
+        return self.__points
+
 
 class AlignmentChart:
     # We'll define labels = [row1col1, row1col2, row1col3, row2col1, ..., row3col3]
@@ -724,3 +730,6 @@ class AlignmentChart:
 
     def get_if_custom_points(self):
         return self.__custompoints
+
+    def get_points(self):
+        return self.__points

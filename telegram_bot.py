@@ -692,6 +692,8 @@ def setup_bet_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "Degree must be non-negative!")
         return
 
+    if chat_data["plots"][plot_id].
+
     chat_data["current_bet"] = { "plot_id" : plot_id,
                                  "degree"  : degree,
                                  "bets"    : OrderedDict() }
