@@ -654,8 +654,7 @@ def my_bet_handler(bot, update, chat_data, args):
         return
 
     # We assume there can only be one bet at a time. This has an associated degree and plot ID.
-    chat_data["current_bet"]["bets"] = list(chat_data["current_bet"]["bets"])
-    chat_data["current_bet"]["bets"].append((username, R2))
+    chat_data["current_bet"]["bets"][username] = R2
     send_message(bot, chat_id, "Your bet has been placed!")
 
 
@@ -695,7 +694,7 @@ def setup_bet_handler(bot, update, chat_data, args):
 
     chat_data["current_bet"] = { "plot_id" : plot_id,
                                  "degree"  : degree,
-                                 "bets"    : [] }
+                                 "bets"    : OrderedDict() }
     send_message(bot, chat_id, "The following bet was created:\n\nPlot ID: " +
                  str(chat_data["current_bet"]["plot_id"]) + "\nDegree: " +
                  str(chat_data["current_bet"]["degree"]))
@@ -719,7 +718,7 @@ def complete_bet_handler(bot, update, chat_data):
         send_message(bot, chat_id, "No bet currently exists!")
         return
 
-    if chat_data["current_bet"].get("bets") is None or len(chat_data["current_bet"]["bets"]) == 0:
+    if chat_data["current_bet"].get("bets") is None or len(chat_data["current_bet"]["bets"].keys()) == 0:
         send_message(bot, chat_id, "No one has yet bet!")
         return
 
@@ -736,7 +735,7 @@ def complete_bet_handler(bot, update, chat_data):
         best = ""
         bestr2 = 0
         best_diff = 2e30
-        for username, value in chat_data["current_bet"]["bets"]:
+        for username, value in chat_data["current_bet"]["bets"].items():
             diff = abs(value - result[1][1])
             if diff < best_diff:
                 best_diff = diff
@@ -896,12 +895,12 @@ def current_bet_handler(bot, update, chat_data):
                  str(chat_data["current_bet"]["plot_id"]) + "\nDegree: " +
                  str(chat_data["current_bet"]["degree"]))
 
-    if chat_data["current_bet"].get("bets") is None or len(chat_data["current_bet"]["bets"]) == 0:
+    if chat_data["current_bet"].get("bets") is None or len(chat_data["current_bet"]["bets"].keys()) == 0:
         send_message(bot, chat_id, "No one has yet placed a bet!")
         return
 
     text = "Current Bets:\n\n"
-    for (username, value) in chat_data["current_bet"]["bets"]:
+    for (username, value) in chat_data["current_bet"]["bets"].items():
         text += str(username) + ": " + str(value) + "\n"
     send_message(bot, chat_id, text)
 
