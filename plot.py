@@ -19,7 +19,7 @@ from sympy import S, symbols, printing
 # https://stackoverflow.com/questions/51113062/how-to-receive-images-from-telegram-bot
 
 class Plot:
-    def __init__(self, name, xaxisleft, xaxisright, yaxisbottom, yaxistop, minx, maxx, miny, maxy, createdby, custompoints=False):
+    def __init__(self, name, xaxisleft, xaxisright, yaxisbottom, yaxistop, minx, maxx, miny, maxy, createdby, id, custompoints=False):
         self.__name = name
         self.__xaxisleft = xaxisleft
         self.__xaxisright = xaxisright
@@ -32,6 +32,8 @@ class Plot:
         self.__points = []
         self.__createdby = createdby
         self.__custompoints = custompoints
+        self.__id = id
+        self.__last_modified = None
 
     def __check_bounds(self, x, y):
         if (self.__minx is not None and x < self.__minx) or (self.__maxx is not None and x > self.__maxx) or \
@@ -39,9 +41,9 @@ class Plot:
             return False
         return True
 
-    def plot_point(self, label, x, y):
-        if not self.__check_bounds(x, y):
-            return 1, "Error: Plot point cannot be out of bounds: " \
+    def plot_point(self, label, x, y, err_x=0, err_y=0):
+        if not self.__check_bounds(x + err_x, y + err_y) or not self.__check_bounds(x - err_x, y - err_y):
+            return 1, "Error: Plot point and error cannot be out of bounds: " \
                       "x : [" + str(self.__minx if self.__minx is not None else "_") + ", " + \
                    str(self.__maxx if self.__maxx is not None else "_") + "] " + \
                    "y : [" + str(self.__miny if self.__miny is not None else "_") + ", " + \
@@ -49,10 +51,10 @@ class Plot:
 
         for i in range(len(self.__points)):
             if self.__points[i][0] == label:
-                self.__points[i] = (label, x, y)
+                self.__points[i] = (label, x, y, err_x, err_y)
                 return 0, ""
 
-        self.__points.append((label if label is not None else "", x, y))
+        self.__points.append((label if label is not None else "", x, y, err_x, err_y))
 
         return 0, ""
 
@@ -64,14 +66,22 @@ class Plot:
         return 0, ""
 
     def generate_plot(self, toggle_labels=True):
+        # Quick check that all the points have errors.
+        for i in range(len(self.__points)):
+            if len(self.__points[i]) != 5:
+                self.__points[i] = (self.__points[i][0], self.__points[i][1], self.__points[i][2], 0, 0)
+
         X = [p[1] for p in self.__points]
         Y = [p[2] for p in self.__points]
+        err_X = [p[3] for p in self.__points]
+        err_Y = [p[4] for p in self.__points]
         labels = [p[0] for p in self.__points]
         colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
                   for color_hash in [ColorHash(label).rgb for label in labels]]
 
         fig = plt.figure()
         plt.grid(True)
+        plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
         plt.scatter(X, Y, c=colors)
         plt.axhline(y=0, color='k')
         plt.axvline(x=0, color='k')
@@ -81,14 +91,14 @@ class Plot:
                 plt.annotate(labels[i], (X[i], Y[i]))
 
         if self.__xaxisleft is not None and self.__xaxisright is not None:
-            plt.xlabel("<-- " + str(self.__xaxisright) + " || " + str(self.__xaxisleft) + " -->")
+            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->")
         elif self.__xaxisright is None and self.__xaxisleft is not None:
             plt.xlabel(str(self.__xaxisleft))
         elif self.__xaxisleft is None and self.__xaxisright is not None:
             plt.xlabel(str(self.__xaxisright))
 
         if self.__yaxistop is not None and self.__yaxisbottom is not None:
-            plt.ylabel("<-- " + str(self.__yaxistop) + " || " + str(self.__yaxisbottom) + " -->")
+            plt.ylabel("<-- " + str(self.__yaxisbottom) + " || " + str(self.__yaxistop) + " -->")
         elif self.__yaxisbottom is None and self.__yaxistop is not None:
             plt.ylabel(str(self.__yaxistop))
         elif self.__yaxistop is None and self.__yaxisbottom is not None:
@@ -96,6 +106,7 @@ class Plot:
 
         if self.__name is not None:
             plt.title(str(self.__name))
+        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
@@ -128,14 +139,14 @@ class Plot:
                 plt.annotate(labels[i], (X[i], Y[i]))
 
         if self.__xaxisleft is not None and self.__xaxisright is not None:
-            plt.xlabel("<-- " + str(self.__xaxisright) + " || " + str(self.__xaxisleft) + " -->")
+            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->")
         elif self.__xaxisright is None and self.__xaxisleft is not None:
             plt.xlabel(str(self.__xaxisleft))
         elif self.__xaxisleft is None and self.__xaxisright is not None:
             plt.xlabel(str(self.__xaxisright))
 
         if self.__yaxistop is not None and self.__yaxisbottom is not None:
-            plt.ylabel("<-- " + str(self.__yaxistop) + " || " + str(self.__yaxisbottom) + " -->")
+            plt.ylabel("<-- " + str(self.__yaxisbottom) + " || " + str(self.__yaxistop) + " -->")
         elif self.__yaxisbottom is None and self.__yaxistop is not None:
             plt.ylabel(str(self.__yaxistop))
         elif self.__yaxistop is None and self.__yaxisbottom is not None:
@@ -143,6 +154,7 @@ class Plot:
 
         if self.__name is not None:
             plt.title(str(self.__name))
+        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
 
         p = np.polynomial.polynomial.polyfit(X, Y, deg)
         f = np.poly1d(p[::-1])
@@ -248,10 +260,32 @@ class Plot:
     def get_points(self):
         return self.__points
 
+    def get_id(self):
+        return self.__id
+
+    def get_last_modified(self):
+        try:
+            timestamp = self.__last_modified
+            return timestamp
+        except AttributeError:
+            return None
+
+    def set_last_modified(self, timestamp):
+        self.__last_modified = timestamp
+
+    def swap_axes(self):
+        temp = self.__xaxisright
+        self.__xaxisright = self.__xaxisleft
+        self.__xaxisleft = temp
+
+        temp = self.__yaxisbottom
+        self.__yaxisbottom = self.__yaxistop
+        self.__yaxistop = temp
+
 
 class BoxedPlot:
     # We'll define horiz = [h1, h2, h3], vertical = [v1, v2, v3]
-    def __init__(self, name, horiz, vert, createdby, custompoints=False):
+    def __init__(self, name, horiz, vert, createdby, id, custompoints=False):
         self.__name = name
         self.__horiz = horiz
         self.__vert = vert
@@ -262,6 +296,8 @@ class BoxedPlot:
         self.__points = []
         self.__createdby = createdby
         self.__custompoints = custompoints
+        self.__id = id
+        self.__last_modified = None
 
     def __check_bounds(self, x, y):
         if (self.__minx is not None and x < self.__minx) or (self.__maxx is not None and x > self.__maxx) or \
@@ -269,9 +305,9 @@ class BoxedPlot:
             return False
         return True
 
-    def plot_point(self, label, x, y):
-        if not self.__check_bounds(x, y):
-            return 1, "Error: Plot point cannot be out of bounds: " \
+    def plot_point(self, label, x, y, err_x=0, err_y=0):
+        if not self.__check_bounds(x + err_x, y + err_y) or not self.__check_bounds(x - err_x, y - err_y):
+            return 1, "Error: Plot point and error cannot be out of bounds: " \
                       "x : [" + str(self.__minx if self.__minx is not None else "_") + ", " + \
                    str(self.__maxx if self.__maxx is not None else "_") + "] " + \
                    "y : [" + str(self.__miny if self.__miny is not None else "_") + ", " + \
@@ -279,10 +315,10 @@ class BoxedPlot:
 
         for i in range(len(self.__points)):
             if self.__points[i][0] == label:
-                self.__points[i] = (label, x, y)
+                self.__points[i] = (label, x, y, err_x, err_y)
                 return 0, ""
 
-        self.__points.append((label if label is not None else "", x, y))
+        self.__points.append((label if label is not None else "", x, y, err_x, err_y))
 
         return 0, ""
 
@@ -294,14 +330,22 @@ class BoxedPlot:
         return 0, ""
 
     def generate_plot(self, toggle_labels=True):
+        # Quick check that all the points have errors.
+        for i in range(len(self.__points)):
+            if len(self.__points[i]) != 5:
+                self.__points[i] = (self.__points[i][0], self.__points[i][1], self.__points[i][2], 0, 0)
+
         X = [p[1] for p in self.__points]
         Y = [p[2] for p in self.__points]
+        err_X = [p[3] for p in self.__points]
+        err_Y = [p[4] for p in self.__points]
         labels = [p[0] for p in self.__points]
         colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
                   for color_hash in [ColorHash(label).rgb for label in labels]]
 
         fig = plt.figure()
         plt.grid(False)
+        plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
         plt.scatter(X, Y, c=colors)
         plt.axhline(y=self.__minx, color='k')
         plt.axvline(x=self.__miny, color='k')
@@ -336,6 +380,7 @@ class BoxedPlot:
 
         if self.__name is not None:
             plt.title(str(self.__name))
+        plt.suptitle("ID: (" + str(self.__id) + ")")
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -394,6 +439,7 @@ class BoxedPlot:
 
         if self.__name is not None:
             plt.title(str(self.__name))
+        plt.suptitle("ID: (" + str(self.__id) + ")")
 
         p = np.polynomial.polynomial.polyfit(X, Y, deg)
         f = np.poly1d(p[::-1])
@@ -491,10 +537,23 @@ class BoxedPlot:
     def get_points(self):
         return self.__points
 
+    def get_id(self):
+        return self.__id
+
+    def get_last_modified(self):
+        try:
+            timestamp = self.__last_modified
+            return timestamp
+        except AttributeError:
+            return None
+
+    def set_last_modified(self, timestamp):
+        self.__last_modified = timestamp
+
 
 class AlignmentChart:
     # We'll define labels = [row1col1, row1col2, row1col3, row2col1, ..., row3col3]
-    def __init__(self, name, labels, createdby, custompoints=False):
+    def __init__(self, name, labels, createdby, id, custompoints=False):
         self.__name = name
         self.__labels = labels
         self.__label_spacing = 1
@@ -505,6 +564,8 @@ class AlignmentChart:
         self.__points = []
         self.__createdby = createdby
         self.__custompoints = custompoints
+        self.__id = id
+        self.__last_modified = None
 
     def __check_bounds(self, x, y):
         if (self.__minx is not None and x < self.__minx) or (self.__maxx is not None and x > self.__maxx) or \
@@ -512,9 +573,9 @@ class AlignmentChart:
             return False
         return True
 
-    def plot_point(self, label, x, y):
-        if not self.__check_bounds(x, y):
-            return 1, "Error: Plot point cannot be out of bounds: " \
+    def plot_point(self, label, x, y, err_x=0, err_y=0):
+        if not self.__check_bounds(x + err_x, y + err_y) or not self.__check_bounds(x - err_x, y - err_y):
+            return 1, "Error: Plot point and error cannot be out of bounds: " \
                       "x : [" + str(self.__minx if self.__minx is not None else "_") + ", " + \
                    str(self.__maxx if self.__maxx is not None else "_") + "] " + \
                    "y : [" + str(self.__miny if self.__miny is not None else "_") + ", " + \
@@ -522,10 +583,10 @@ class AlignmentChart:
 
         for i in range(len(self.__points)):
             if self.__points[i][0] == label:
-                self.__points[i] = (label, x, y)
+                self.__points[i] = (label, x, y, err_x, err_y)
                 return 0, ""
 
-        self.__points.append((label if label is not None else "", x, y))
+        self.__points.append((label if label is not None else "", x, y, err_x, err_y))
 
         return 0, ""
 
@@ -537,14 +598,22 @@ class AlignmentChart:
         return 0, ""
 
     def generate_plot(self, toggle_labels=True):
+        # Quick check that all the points have errors.
+        for i in range(len(self.__points)):
+            if len(self.__points[i]) != 5:
+                self.__points[i] = (self.__points[i][0], self.__points[i][1], self.__points[i][2], 0, 0)
+
         X = [p[1] for p in self.__points]
         Y = [p[2] for p in self.__points]
+        err_X = [p[3] for p in self.__points]
+        err_Y = [p[4] for p in self.__points]
         labels = [p[0] for p in self.__points]
         colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
                   for color_hash in [ColorHash(label).rgb for label in labels]]
 
         fig = plt.figure()
         plt.grid(False)
+        plt.errorbar(X, Y, xerr=err_X, yerr=err_X, ecolor=colors, linestyle="None")
         plt.scatter(X, Y, c=colors)
         plt.axhline(y=self.__minx, color='k')
         plt.axvline(x=self.__miny, color='k')
@@ -580,6 +649,7 @@ class AlignmentChart:
 
         if self.__name is not None:
             plt.title(str(self.__name))
+        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -639,6 +709,7 @@ class AlignmentChart:
 
         if self.__name is not None:
             plt.title(str(self.__name))
+        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
 
         p = np.polynomial.polynomial.polyfit(X, Y, deg)
         f = np.poly1d(p[::-1])
@@ -733,3 +804,16 @@ class AlignmentChart:
 
     def get_points(self):
         return self.__points
+
+    def get_id(self):
+        return self.__id
+
+    def get_last_modified(self):
+        try:
+            timestamp = self.__last_modified
+            return timestamp
+        except AttributeError:
+            return None
+
+    def set_last_modified(self, timestamp):
+        self.__last_modified = timestamp

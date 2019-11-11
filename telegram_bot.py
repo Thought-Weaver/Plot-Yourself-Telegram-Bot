@@ -10,6 +10,7 @@ import logging
 import os
 import argparse
 from collections import Counter, OrderedDict
+import datetime
 
 from plot import Plot, BoxedPlot, AlignmentChart
 
@@ -104,22 +105,25 @@ def create_plot_handler(bot, update, chat_data, args):
     if chat_data.get("plots") is None:
         chat_data["plots"] = {}
 
+    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
     plot = Plot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
-                " ".join(plot_args.get("xright")) if plot_args.get("xright") is not None else None,
                 " ".join(plot_args.get("xleft")) if plot_args.get("xleft") is not None else None,
-                " ".join(plot_args.get("ytop")) if plot_args.get("ytop") is not None else None,
+                " ".join(plot_args.get("xright")) if plot_args.get("xright") is not None else None,
                 " ".join(plot_args.get("ybottom")) if plot_args.get("ybottom") is not None else None,
+                " ".join(plot_args.get("ytop")) if plot_args.get("ytop") is not None else None,
                 plot_args.get("minx") if plot_args.get("minx") is not None else -10,
                 plot_args.get("maxx") if plot_args.get("maxx") is not None else 10,
                 plot_args.get("miny") if plot_args.get("miny") is not None else -10,
                 plot_args.get("maxy") if plot_args.get("maxy") is not None else 10,
                 username,
+                max_key + 1,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
     chat_data["plots"][max_key + 1] = plot
 
     send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
                                    " (" + str(max_key + 1) + ") was created successfully!")
+
+    show_plot_handler(bot, update, chat_data, [max_key + 1])
 
 
 def remove_plot_handler(bot, update, chat_data, args):
@@ -178,9 +182,9 @@ def plot_me_handler(bot, update, chat_data, args):
         if user.last_name is not None:
             username += user.last_name
 
-    # Args are: {plot_id, but defaults to max key in non-archived plots}, x, y
-    if len(args) < 2 or len(args) > 3:
-        send_message(bot, chat_id, "usage: /plotme {plot_id} {x} {y}")
+    # Args are: {plot_id, but defaults to max key in non-archived plots}, x, y, err_x, err_y
+    if len(args) < 2 or len(args) > 5:
+        send_message(bot, chat_id, "usage: /plotme {plot_id} {x} {y} {err_x} {err_y}")
         return
 
     if chat_data.get("archived") is None:
@@ -188,12 +192,14 @@ def plot_me_handler(bot, update, chat_data, args):
 
     try:
         # Select the most recent (max) key from plots that aren't archived by default.
-        plot_id = int(args[0]) if len(args) == 3 else int(max({k:v for k, v in chat_data["plots"].items()
+        plot_id = int(args[0]) if len(args) >= 3 else int(max({k:v for k, v in chat_data["plots"].items()
                                                                if k not in chat_data["archived"]}.keys()))
-        x = float(args[1] if len(args) == 3 else args[0])
-        y = float(args[2] if len(args) == 3 else args[1])
+        x = float(args[1] if len(args) >= 3 else args[0])
+        y = float(args[2] if len(args) >= 3 else args[1])
+        err_x = float(args[3] if len(args) >= 4 else 0)
+        err_y = float(args[4] if len(args) == 5 else 0)
     except ValueError:
-        send_message(bot, chat_id, "Plot ID must be an int and x, y must be floats!")
+        send_message(bot, chat_id, "Plot ID must be an int and x, y, err_x, err_y must be floats!")
         return
 
     if chat_data.get("plots") is None:
@@ -206,7 +212,7 @@ def plot_me_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
-    result = plot.plot_point(username, x, y)
+    result = plot.plot_point(username, x, y, err_x=err_x, err_y=err_y)
 
     if result is None:
         return
@@ -225,6 +231,8 @@ def plot_me_handler(bot, update, chat_data, args):
             return
         elif img[0] == 0:
             bot.send_photo(chat_id=chat_id, photo=img[1])
+
+        chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
 
 
 def remove_me_handler(bot, update, chat_data, args):
@@ -285,17 +293,23 @@ def remove_me_handler(bot, update, chat_data, args):
         elif img[0] == 0:
             bot.send_photo(chat_id=chat_id, photo=img[1])
 
+        chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+
 
 def show_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
 
-    # Args are: plot_id {optional toggle for labels}
-    if len(args) == 0 or len(args) > 2:
+    # Args are: {optional plot_id} {optional toggle for labels}
+    if len(args) > 2:
         send_message(bot, chat_id, "usage: /showplot {plot_id} {optional 0/1 toggle for labels}")
         return
 
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
     try:
-        plot_id = int(args[0])
+        plot_id = int(args[0]) if len(args) >= 1 else int(max({k:v for k, v in chat_data["plots"].items()
+                                                               if k not in chat_data["archived"]}.keys()))
         toggle = 1 if len(args) != 2 else int(args[1])
     except ValueError:
         send_message(bot, chat_id, "The plot ID and optional toggle must be an integer!")
@@ -538,6 +552,8 @@ def custom_point_handler(bot, update, chat_data, args):
         elif img[0] == 0:
             bot.send_photo(chat_id=chat_id, photo=img[1])
 
+        chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+
 
 def boxed_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
@@ -573,16 +589,19 @@ def boxed_plot_handler(bot, update, chat_data, args):
         " ".join(plot_args.get("vert2")) if plot_args.get("vert2") is not None else ""
     ]
 
+    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
     plot = BoxedPlot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
                 horiz,
                 vert,
                 username,
+                max_key + 1,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
     chat_data[max_key + 1] = plot
 
     send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
                                    " (" + str(max_key + 1) + ") was created successfully!")
+
+    show_plot_handler(bot, update, chat_data, [max_key + 1])
 
 
 def lookup_handler(bot, update, chat_data, args):
@@ -783,11 +802,18 @@ def scoreboard_handler(bot, update, chat_data):
     highest = Counter(scoreboard).most_common(3)
 
     text = "Top 3 Scoreboard:\n\n"
-    for i in highest:
+    for i in range(len(highest)):
         # Just in case, somehow, someone exists in scoreboard but not avg.
-        if chat_data["scoreboard_avg"].get(str(i[0])) is None:
-            chat_data["scoreboard_avg"][str(i[0])] = 0
-        text += str(i[0]) + ": " + str(i[1]) + " with Avg Diff: " + str(chat_data["scoreboard_avg"][str(i[0])]) + "\n"
+        if chat_data["scoreboard_avg"].get(str(highest[i][0])) is None:
+            chat_data["scoreboard_avg"][str(highest[i][0])] = 0
+        highest[i] = (highest[i][0],
+                      highest[i][1],
+                      chat_data["scoreboard_avg"][str(highest[i][0])])
+    highest.sort(key=lambda x: (-x[1], x[2]))
+
+    for x in highest:
+        text += str(x[0]) + ": " + str(x[1]) + " with Avg Diff: " + \
+                str(chat_data["scoreboard_avg"][str(x[0])]) + "\n"
 
     send_message(bot, chat_id, text)
 
@@ -944,15 +970,18 @@ def alignment_chart_handler(bot, update, chat_data, args):
         " ".join(plot_args.get("label9")) if plot_args.get("label9") is not None else ""
     ]
 
+    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
     plot = AlignmentChart(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
                 labels,
                 username,
+                max_key + 1,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
     chat_data[max_key + 1] = plot
 
     send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
                                    " (" + str(max_key + 1) + ") was created successfully!")
+
+    show_plot_handler(bot, update, chat_data, [max_key + 1])
 
 
 def archive_handler(bot, update, chat_data, args):
@@ -1137,6 +1166,36 @@ def unarchive_all_handler(bot, update, chat_data):
     send_message(bot, chat_id, "Your plots have been unarchived.")
 
 
+def last_updated_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+
+    # Args are: plot_id
+    if len(args) != 1:
+        send_message(bot, chat_id, "usage: /lastupdated {plot_id}")
+        return
+
+    try:
+        plot_id = int(args[0])
+    except ValueError:
+        send_message(bot, chat_id, "The plot ID must be an integer!")
+        return
+
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    update_time = plot.get_last_modified()
+    if update_time is None:
+        update_time = "This plot hasn't been updated!"
+    send_message(bot, chat_id, "Last Updated: " + str(update_time))
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -1181,6 +1240,7 @@ if __name__ == "__main__":
     my_plots_aliases = ["myplots", "mp"]
     archive_all_aliases = ["archiveall", "aap"]
     unarchive_all_aliases = ["unarchiveall", "uapp"]
+    last_updated_aliases = ["lastupdated", "lup"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1207,7 +1267,8 @@ if __name__ == "__main__":
                 ("full_list_plots", 1, full_list_plots_aliases),
                 ("my_plots", 1, my_plots_aliases),
                 ("archive_all", 1, archive_all_aliases),
-                ("unarchive_all", 1, unarchive_all_aliases)]
+                ("unarchive_all", 1, unarchive_all_aliases),
+                ("last_updated", 2, last_updated_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

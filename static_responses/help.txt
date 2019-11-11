@@ -29,12 +29,13 @@ myplots - Sends you a list of all the plots you've made. (Aliases: mp)
 start - Sends a simple help message.
 archiveall - Archives all your plots. (Aliases: aap)
 unarchiveall - Unarchives all your plots. (Aliases: uapp)
+lastupdated - Returns when the plot with that ID was last modified. (Aliases: lup)
 
 Argument lists for each are below:
 
 /createplot {title} {x_axis_right_label} {x_axis_left_label} {y_axis_top_label} {y_axis_bottom_label} {min_x_value} {max_x_value} {min_y_value} {max_y_value} {--custompoints}
 /removeplot {plot_id}
-/plotme {plot_id} {x} {y}
+/plotme {plot_id} {x} {y} {err_x} {err_y}
 /removeme {plot_id}
 /showplot {plot_id} {optional label toggle}
 /listplots
@@ -61,6 +62,7 @@ Argument lists for each are below:
 /start
 /archiveall
 /unarchiveall
+/lastupdated {plot_id}
 
 Note that all the arguments for /createplot and /boxedplot are optional. Also note that the default bounds on a plot are [-10, 10] on both axes. Here are a couple of examples:
 
