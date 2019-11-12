@@ -1223,7 +1223,7 @@ def whos_plotted_handler(bot, update, chat_data, args):
     points = plot.get_points()
     text = "Currently plotted on (" + str(plot_id) +  "):\n\n"
     for p in points:
-        text += str(p[0]) + ": (" + str(p[1]) + ", " + str(p[2]) + ")"
+        text += str(p[0]) + ": (" + str(p[1]) + ", " + str(p[2]) + ")\n"
     send_message(bot, chat_id, text)
 
 
