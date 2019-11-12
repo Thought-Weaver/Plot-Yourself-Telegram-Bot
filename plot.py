@@ -273,15 +273,6 @@ class Plot:
     def set_last_modified(self, timestamp):
         self.__last_modified = timestamp
 
-    def swap_axes(self):
-        temp = self.__xaxisright
-        self.__xaxisright = self.__xaxisleft
-        self.__xaxisleft = temp
-
-        temp = self.__yaxisbottom
-        self.__yaxisbottom = self.__yaxistop
-        self.__yaxistop = temp
-
 
 class BoxedPlot:
     # We'll define horiz = [h1, h2, h3], vertical = [v1, v2, v3]
@@ -783,6 +774,259 @@ class AlignmentChart:
 
     def get_labels(self):
         return self.__labels
+
+    def get_minx(self):
+        return self.__minx
+
+    def get_maxx(self):
+        return self.__maxx
+
+    def get_miny(self):
+        return self.__miny
+
+    def get_maxy(self):
+        return self.__maxy
+
+    def get_creator(self):
+        return self.__createdby
+
+    def get_if_custom_points(self):
+        return self.__custompoints
+
+    def get_points(self):
+        return self.__points
+
+    def get_id(self):
+        return self.__id
+
+    def get_last_modified(self):
+        try:
+            timestamp = self.__last_modified
+            return timestamp
+        except AttributeError:
+            return None
+
+    def set_last_modified(self, timestamp):
+        self.__last_modified = timestamp
+
+
+class TrianglePlot:
+    def __init__(self, name, xaxisleft, xaxisright, yaxistop, createdby, id, custompoints=False):
+        self.__name = name
+        self.__xaxisleft = xaxisleft
+        self.__xaxisright = xaxisright
+        self.__yaxistop = yaxistop
+        self.__minx = 0
+        self.__maxx = 10
+        self.__miny = 0
+        self.__maxy = 10
+        self.__points = []
+        self.__createdby = createdby
+        self.__custompoints = custompoints
+        self.__id = id
+        self.__last_modified = None
+
+    def __check_sign(self, x1, y1, x2, y2, x3, y3):
+        return (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3)
+
+    def __check_bounds(self, x, y):
+        d1 = self.__check_sign(x, y, self.__minx, self.__miny, self.__maxx / 2, self.__maxy)
+        d2 = self.__check_sign(x, y, self.__maxx / 2, self.__maxy, self.__maxx, self.__miny)
+        d3 = self.__check_sign(x, y, self.__minx, self.__miny, self.__maxx, self.__miny)
+
+        negative = (d1 < 0) or (d2 < 0) or (d3 < 0)
+        positive = (d1 > 0) or (d2 > 0) or (d3 > 0)
+
+        return not (negative and positive)
+
+    def plot_point(self, label, x, y, err_x=0, err_y=0):
+        if not self.__check_bounds(x + err_x, y + err_y) or not self.__check_bounds(x - err_x, y - err_y):
+            return 1, "Error: Plot point and error cannot be out of triangle bounds!"
+
+        for i in range(len(self.__points)):
+            if self.__points[i][0] == label:
+                self.__points[i] = (label, x, y, err_x, err_y)
+                return 0, ""
+
+        self.__points.append((label if label is not None else "", x, y, err_x, err_y))
+
+        return 0, ""
+
+    def remove_point(self, label):
+        if label not in [t[0] for t in self.__points]:
+            return 1, "Error: You haven't plotted yourself in this plot."
+        self.__points.remove(next(p for p in self.__points if p[0] == label))
+
+        return 0, ""
+
+    def generate_plot(self, toggle_labels=True):
+        # Quick check that all the points have errors.
+        for i in range(len(self.__points)):
+            if len(self.__points[i]) != 5:
+                self.__points[i] = (self.__points[i][0], self.__points[i][1], self.__points[i][2], 0, 0)
+
+        X = [p[1] for p in self.__points]
+        Y = [p[2] for p in self.__points]
+        err_X = [p[3] for p in self.__points]
+        err_Y = [p[4] for p in self.__points]
+        labels = [p[0] for p in self.__points]
+        colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
+                  for color_hash in [ColorHash(label).rgb for label in labels]]
+
+        fig = plt.figure()
+        plt.grid(False)
+        plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
+        plt.scatter(X, Y, c=colors)
+        plt.axhline(y=0, color='k')
+        plt.axvline(x=0, color='k')
+
+        plt.plot((self.__minx, self.__miny), (self.__maxx / 2, self.__maxy), color='k')
+        plt.plot((self.__maxx / 2, self.__maxy), (self.__maxx, self.__miny), color='k')
+        plt.plot((self.__minx, self.__miny), (self.__maxx, self.__maxy), color='k')
+
+        if toggle_labels:
+            for i in range(len(X)):
+                plt.annotate(labels[i], (X[i], Y[i]))
+
+        if self.__xaxisleft is not None and self.__xaxisright is not None:
+            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->")
+        elif self.__xaxisright is None and self.__xaxisleft is not None:
+            plt.xlabel(str(self.__xaxisleft))
+        elif self.__xaxisleft is None and self.__xaxisright is not None:
+            plt.xlabel(str(self.__xaxisright))
+
+        if self.__yaxistop is not None:
+            plt.ylabel(str(self.__yaxistop))
+
+        if self.__name is not None:
+            plt.title(str(self.__name))
+        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
+
+        plt.xlim(left=self.__minx, right=self.__maxx)
+        plt.ylim(bottom=self.__miny, top=self.__maxy)
+
+        buffer = BytesIO()
+        fig.savefig(buffer, format="png")
+        buffer.seek(0)
+
+        # bot.send_photo(chat_id=chat_id, photo=buffer)
+        # This returns the image itself that can then be sent.
+        return 0, buffer
+
+    def generate_stats(self):
+        points_dict = { "Names" : pd.Series(np.asarray([p[0] for p in self.__points], dtype=str)),
+                        "X" : pd.Series(np.asarray([p[1] for p in self.__points], dtype=float)),
+                        "Y" : pd.Series(np.asarray([p[2] for p in self.__points], dtype=float)) }
+        return 0, pd.DataFrame(points_dict).describe()
+
+    def polyfit(self, deg, toggle_labels=True):
+        X = [p[1] for p in self.__points]
+        Y = [p[2] for p in self.__points]
+        labels = [p[0] for p in self.__points]
+        colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
+                  for color_hash in [ColorHash(label).rgb for label in labels]]
+
+        fig = plt.figure()
+
+        if toggle_labels:
+            for i in range(len(X)):
+                plt.annotate(labels[i], (X[i], Y[i]))
+
+        if self.__xaxisleft is not None and self.__xaxisright is not None:
+            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->")
+        elif self.__xaxisright is None and self.__xaxisleft is not None:
+            plt.xlabel(str(self.__xaxisleft))
+        elif self.__xaxisleft is None and self.__xaxisright is not None:
+            plt.xlabel(str(self.__xaxisright))
+
+        if self.__yaxistop is not None:
+            plt.ylabel(str(self.__yaxistop))
+
+        if self.__name is not None:
+            plt.title(str(self.__name))
+        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
+
+        p = np.polynomial.polynomial.polyfit(X, Y, deg)
+        f = np.poly1d(p[::-1])
+
+        x_new = np.linspace(min(X), max(X), 10 * len(X))
+        y_new = f(x_new)
+
+        x = symbols('x')
+        poly = sum(S("{:6.3f}".format(v)) * x ** i for i, v in enumerate(p))
+        eq_latex = printing.latex(poly)
+
+        plt.grid(False)
+        plt.scatter(X, Y, c=colors)
+        plt.axhline(y=0, color='k')
+        plt.axvline(x=0, color='k')
+        plt.plot((self.__minx, self.__miny), (self.__maxx / 2, self.__maxy), color='k')
+        plt.plot((self.__maxx / 2, self.__maxy), (self.__maxx, self.__miny), color='k')
+        plt.plot((self.__minx, self.__miny), (self.__maxx, self.__maxy), color='k')
+
+        plt.plot(x_new, y_new, label="${}$".format(eq_latex))
+        plt.legend(fontsize="small")
+
+        buffer = BytesIO()
+        fig.savefig(buffer, format="png")
+        buffer.seek(0)
+
+        yhat = f(X)
+        ybar = np.sum(Y) / len(Y)
+        ssres = np.sum((Y - yhat) ** 2)
+        sstot = np.sum((Y - ybar) ** 2)
+
+        return 0, (buffer, 1 - ssres / sstot)
+
+    def full_equation(self, deg):
+        X = [p[1] for p in self.__points]
+        Y = [p[2] for p in self.__points]
+
+        p = np.polynomial.polynomial.polyfit(X, Y, deg)
+
+        x = symbols('x')
+        poly = sum(S("{:f}".format(v)) * x ** i for i, v in enumerate(p))
+        eq_latex = printing.latex(poly)
+
+        #fig = plt.figure()
+        #plt.grid(False)
+        #plt.axis('off')
+        #plt.tight_layout()
+        #plt.text(0, 0.5, r"$%s$" % eq_latex, fontsize="medium", wrap=True)
+
+        #buffer = BytesIO()
+        #fig.savefig(buffer, format="png")
+        #buffer.seek(0)
+
+        return 0, eq_latex
+
+    def lookup_label(self, label):
+        for p in self.__points:
+            if p[0] == label:
+                return 0, (p[1], p[2])
+        return 1, "Name not found on that plot."
+
+    def edit_plot(self, plot_args):
+        self.__name = " ".join(plot_args.get("title")) if plot_args.get("title") is not None else self.__name
+        self.__xaxisright = " ".join(plot_args.get("xright")) if plot_args.get("xright") is not None else self.__xaxisright
+        self.__xaxisleft = " ".join(plot_args.get("xleft")) if plot_args.get("xleft") is not None else self.__xaxisleft
+        self.__yaxistop = " ".join(plot_args.get("ytop")) if plot_args.get("ytop") is not None else self.__yaxistop
+        self.__custompoints = plot_args.get("custompoints") if plot_args.get("custompoints") is not None else self.__custompoints
+
+    def get_name(self):
+        return self.__name
+
+    def get_xaxisleft(self):
+        return self.__xaxisleft
+
+    def get_xaxisright(self):
+        return self.__xaxisright
+
+    def get_yaxisbottom(self):
+        return self.__yaxisbottom
+
+    def get_yaxistop(self):
+        return self.__yaxistop
 
     def get_minx(self):
         return self.__minx

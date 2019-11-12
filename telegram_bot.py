@@ -12,7 +12,7 @@ import argparse
 from collections import Counter, OrderedDict
 import datetime
 
-from plot import Plot, BoxedPlot, AlignmentChart
+from plot import Plot, BoxedPlot, AlignmentChart, TrianglePlot
 
 with open("api_key.txt", 'r') as f:
     TOKEN = f.read().rstrip()
@@ -1227,6 +1227,45 @@ def whos_plotted_handler(bot, update, chat_data, args):
     send_message(bot, chat_id, text)
 
 
+def triangle_plot_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    try:
+        parsed = ARG_PARSER.parse_args(args)
+        plot_args = vars(parsed)
+    except SystemExit:
+        send_message(bot, chat_id, "That is not a valid argument list. See /help.")
+        return
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+
+    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
+    plot = TrianglePlot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
+                " ".join(plot_args.get("xleft")) if plot_args.get("xleft") is not None else None,
+                " ".join(plot_args.get("xright")) if plot_args.get("xright") is not None else None,
+                " ".join(plot_args.get("ytop")) if plot_args.get("ytop") is not None else None,
+                username,
+                max_key + 1,
+                plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
+    chat_data["plots"][max_key + 1] = plot
+
+    send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
+                                   " (" + str(max_key + 1) + ") was created successfully!")
+
+    show_plot_handler(bot, update, chat_data, [max_key + 1])
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -1273,6 +1312,7 @@ if __name__ == "__main__":
     unarchive_all_aliases = ["unarchiveall", "uapp"]
     last_updated_aliases = ["lastupdated", "lup"]
     whosplotted_aliases = ["whosplotted", "whoops", "wps"]
+    triangle_plot_aliases = ["triangleplot", "tp"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1301,7 +1341,8 @@ if __name__ == "__main__":
                 ("archive_all", 1, archive_all_aliases),
                 ("unarchive_all", 1, unarchive_all_aliases),
                 ("last_updated", 2, last_updated_aliases),
-                ("whos_plotted", 2, whosplotted_aliases)]
+                ("whos_plotted", 2, whosplotted_aliases),
+                ("triangle_plot", 2, triangle_plot_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

@@ -11,6 +11,7 @@ New Features:
     * /pm 51 2 3 0.2 0.2
 -Scoreboard is now sorted by number of wins, then average difference for ties.
 -Added /whosplotted {plot_id} to see who has plotted themselves on that plot.
+-Added /triangleplot for triangular plots!
 
 Bug Fixes:
 
