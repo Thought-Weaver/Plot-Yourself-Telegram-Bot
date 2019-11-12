@@ -12,6 +12,7 @@ New Features:
 -Scoreboard is now sorted by number of wins, then average difference for ties.
 -Added /whosplotted {plot_id} to see who has plotted themselves on that plot.
 -Added /triangleplot for triangular plots!
+-Added /zoom {plot_id} {min_x} {min_y} {max_x} {max_y} to zoom in on plots!
 
 Bug Fixes:
 

@@ -1266,6 +1266,46 @@ def triangle_plot_handler(bot, update, chat_data, args):
     show_plot_handler(bot, update, chat_data, [max_key + 1])
 
 
+def zoom_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+
+    if len(args) != 5:
+        send_message(bot, chat_id, "usage: /zoom {plot_id} {min_x} {min_y} {max_x} {max_y}")
+        return
+
+    try:
+        plot_id = int(args[0])
+        min_x = int(args[1])
+        min_y = int(args[2])
+        max_x = int(args[3])
+        max_y = int(args[4])
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID and rectangle bounds must be integers!")
+        return
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    result = plot.generate_plot(zoom_x_min=min_x, zoom_y_min=min_y, zoom_x_max=max_x, zoom_y_max=max_y)
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        bot.send_photo(chat_id=chat_id, photo=result[1])
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -1313,6 +1353,7 @@ if __name__ == "__main__":
     last_updated_aliases = ["lastupdated", "lup"]
     whosplotted_aliases = ["whosplotted", "whoops", "wps"]
     triangle_plot_aliases = ["triangleplot", "tp"]
+    zoom_aliases = ["zoom", "z", "sonic", "sanic"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1342,7 +1383,8 @@ if __name__ == "__main__":
                 ("unarchive_all", 1, unarchive_all_aliases),
                 ("last_updated", 2, last_updated_aliases),
                 ("whos_plotted", 2, whosplotted_aliases),
-                ("triangle_plot", 2, triangle_plot_aliases)]
+                ("triangle_plot", 2, triangle_plot_aliases),
+                ("zoom", 2, zoom_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

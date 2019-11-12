@@ -65,7 +65,7 @@ class Plot:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -110,6 +110,8 @@ class Plot:
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
+        if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
+            plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -320,7 +322,7 @@ class BoxedPlot:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -368,6 +370,8 @@ class BoxedPlot:
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
+        if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
+            plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
 
         if self.__name is not None:
             plt.title(str(self.__name))
@@ -588,7 +592,7 @@ class AlignmentChart:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -637,6 +641,8 @@ class AlignmentChart:
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
+        if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
+            plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
 
         if self.__name is not None:
             plt.title(str(self.__name))
@@ -832,7 +838,7 @@ class TrianglePlot:
     def __check_bounds(self, x, y):
         d1 = self.__check_sign(x, y, self.__minx, self.__miny, self.__maxx / 2, self.__maxy)
         d2 = self.__check_sign(x, y, self.__maxx / 2, self.__maxy, self.__maxx, self.__miny)
-        d3 = self.__check_sign(x, y, self.__minx, self.__miny, self.__maxx, self.__miny)
+        d3 = self.__check_sign(x, y, self.__maxx, self.__miny, self.__minx, self.__miny)
 
         negative = (d1 < 0) or (d2 < 0) or (d3 < 0)
         positive = (d1 > 0) or (d2 > 0) or (d3 > 0)
@@ -859,7 +865,7 @@ class TrianglePlot:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -877,12 +883,9 @@ class TrianglePlot:
         plt.grid(False)
         plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
         plt.scatter(X, Y, c=colors)
-        plt.axhline(y=0, color='k')
-        plt.axvline(x=0, color='k')
 
-        plt.plot((self.__minx, self.__miny), (self.__maxx / 2, self.__maxy), color='k')
-        plt.plot((self.__maxx / 2, self.__maxy), (self.__maxx, self.__miny), color='k')
-        plt.plot((self.__minx, self.__miny), (self.__maxx, self.__maxy), color='k')
+        triangle = plt.Polygon([[self.__minx, self.__miny], [self.__maxx / 2, self.__maxy], [self.__maxx, self.__miny]], fill=False, color='k')
+        plt.gca().add_patch(triangle)
 
         if toggle_labels:
             for i in range(len(X)):
@@ -904,6 +907,8 @@ class TrianglePlot:
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
+        if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
+            plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -958,11 +963,8 @@ class TrianglePlot:
 
         plt.grid(False)
         plt.scatter(X, Y, c=colors)
-        plt.axhline(y=0, color='k')
-        plt.axvline(x=0, color='k')
-        plt.plot((self.__minx, self.__miny), (self.__maxx / 2, self.__maxy), color='k')
-        plt.plot((self.__maxx / 2, self.__maxy), (self.__maxx, self.__miny), color='k')
-        plt.plot((self.__minx, self.__miny), (self.__maxx, self.__maxy), color='k')
+        triangle = plt.Polygon([[self.__minx, self.__miny], [self.__maxx / 2, self.__maxy], [self.__maxx, self.__miny]], fill=False, color='k')
+        plt.gca().add_patch(triangle)
 
         plt.plot(x_new, y_new, label="${}$".format(eq_latex))
         plt.legend(fontsize="small")
