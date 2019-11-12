@@ -1275,12 +1275,12 @@ def zoom_handler(bot, update, chat_data, args):
 
     try:
         plot_id = int(args[0])
-        min_x = int(args[1])
-        min_y = int(args[2])
-        max_x = int(args[3])
-        max_y = int(args[4])
+        min_x = float(args[1])
+        min_y = float(args[2])
+        max_x = float(args[3])
+        max_y = float(args[4])
     except ValueError:
-        send_message(bot, chat_id, "Plot ID and rectangle bounds must be integers!")
+        send_message(bot, chat_id, "Plot ID must be an integer and rectangle bounds must be floats!")
         return
 
     if chat_data.get("plots") is None:
