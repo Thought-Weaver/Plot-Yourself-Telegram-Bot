@@ -1196,6 +1196,37 @@ def last_updated_handler(bot, update, chat_data, args):
     send_message(bot, chat_id, "Last Updated: " + str(update_time))
 
 
+def whos_plotted_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+
+    # Args are: plot_id
+    if len(args) != 1:
+        send_message(bot, chat_id, "usage: /whosplotted {plot_id}")
+        return
+
+    try:
+        plot_id = int(args[0])
+    except ValueError:
+        send_message(bot, chat_id, "The plot ID must be an integer!")
+        return
+
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    points = plot.get_points()
+    text = "Currently plotted on (" + str(plot_id) +  "):\n\n"
+    for p in points:
+        text += str(p[0]) + ": (" + str(p[1]) + ", " + str(p[2]) + ")"
+    send_message(bot, chat_id, text)
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -1241,6 +1272,7 @@ if __name__ == "__main__":
     archive_all_aliases = ["archiveall", "aap"]
     unarchive_all_aliases = ["unarchiveall", "uapp"]
     last_updated_aliases = ["lastupdated", "lup"]
+    whosplotted_aliases = ["whosplotted", "whoops", "wps"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1268,7 +1300,8 @@ if __name__ == "__main__":
                 ("my_plots", 1, my_plots_aliases),
                 ("archive_all", 1, archive_all_aliases),
                 ("unarchive_all", 1, unarchive_all_aliases),
-                ("last_updated", 2, last_updated_aliases)]
+                ("last_updated", 2, last_updated_aliases),
+                ("whos_plotted", 2, whosplotted_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:
