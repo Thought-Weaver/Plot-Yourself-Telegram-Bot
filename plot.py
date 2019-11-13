@@ -83,7 +83,8 @@ class Plot:
         fig = plt.figure()
         if self.__minx != self.__maxx and self.__miny != self.__maxy:
             plt.grid(True)
-        plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
+        if not contour:
+            plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
         plt.scatter(X, Y, c=colors)
 
         if self.__minx != self.__maxx:
