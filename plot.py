@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 from matplotlib import pyplot as plt
+from matplotlib import tri as tri
 from colorhash import ColorHash
 from io import BytesIO
 
@@ -65,7 +66,7 @@ class Plot:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0, contour=False):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -80,11 +81,15 @@ class Plot:
                   for color_hash in [ColorHash(label).rgb for label in labels]]
 
         fig = plt.figure()
-        plt.grid(True)
+        if self.__minx != self.__maxx and self.__miny != self.__maxy:
+            plt.grid(True)
         plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
         plt.scatter(X, Y, c=colors)
-        plt.axhline(y=0, color='k')
-        plt.axvline(x=0, color='k')
+
+        if self.__minx != self.__maxx:
+            plt.axhline(y=0, color='k')
+        if self.__miny != self.__maxy:
+            plt.axvline(x=0, color='k')
 
         if toggle_labels:
             for i in range(len(X)):
@@ -112,6 +117,20 @@ class Plot:
         plt.ylim(bottom=self.__miny, top=self.__maxy)
         if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
             plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
+
+        if contour:
+            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
+            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            triang = tri.Triangulation(np.array(X), np.array(Y))
+            interpolator = tri.LinearTriInterpolator(triang, np.array(X) *
+                                                             np.exp(-np.array(X) ** 2 - np.array(Y) ** 2))
+            Xi, Yi = np.meshgrid(xi, yi)
+            zi = interpolator(Xi, Yi)
+
+            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
+            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+            fig.colorbar(cntr)
+
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -322,7 +341,7 @@ class BoxedPlot:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0, contour=False):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -376,6 +395,19 @@ class BoxedPlot:
         if self.__name is not None:
             plt.title(str(self.__name))
         plt.suptitle("ID: (" + str(self.__id) + ")")
+
+        if contour:
+            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
+            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            triang = tri.Triangulation(np.array(X), np.array(Y))
+            interpolator = tri.LinearTriInterpolator(triang, np.array(X) *
+                                                             np.exp(-np.array(X) ** 2 - np.array(Y) ** 2))
+            Xi, Yi = np.meshgrid(xi, yi)
+            zi = interpolator(Xi, Yi)
+
+            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
+            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+            fig.colorbar(cntr)
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -592,7 +624,7 @@ class AlignmentChart:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0, contour=False):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -647,6 +679,19 @@ class AlignmentChart:
         if self.__name is not None:
             plt.title(str(self.__name))
         plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
+
+        if contour:
+            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
+            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            triang = tri.Triangulation(np.array(X), np.array(Y))
+            interpolator = tri.LinearTriInterpolator(triang, np.array(X) *
+                                                             np.exp(-np.array(X) ** 2 - np.array(Y) ** 2))
+            Xi, Yi = np.meshgrid(xi, yi)
+            zi = interpolator(Xi, Yi)
+
+            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
+            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+            fig.colorbar(cntr)
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -865,7 +910,7 @@ class TrianglePlot:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0, contour=False):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -909,6 +954,19 @@ class TrianglePlot:
         plt.ylim(bottom=self.__miny, top=self.__maxy)
         if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
             plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
+
+        if contour:
+            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
+            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            triang = tri.Triangulation(np.array(X), np.array(Y))
+            interpolator = tri.LinearTriInterpolator(triang, np.array(X) *
+                                                             np.exp(-np.array(X) ** 2 - np.array(Y) ** 2))
+            Xi, Yi = np.meshgrid(xi, yi)
+            zi = interpolator(Xi, Yi)
+
+            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
+            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+            fig.colorbar(cntr)
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")

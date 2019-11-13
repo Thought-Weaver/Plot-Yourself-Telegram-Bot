@@ -596,7 +596,7 @@ def boxed_plot_handler(bot, update, chat_data, args):
                 username,
                 max_key + 1,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    chat_data[max_key + 1] = plot
+    chat_data["plots"][max_key + 1] = plot
 
     send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
                                    " (" + str(max_key + 1) + ") was created successfully!")
@@ -976,7 +976,7 @@ def alignment_chart_handler(bot, update, chat_data, args):
                 username,
                 max_key + 1,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
-    chat_data[max_key + 1] = plot
+    chat_data["plots"][max_key + 1] = plot
 
     send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
                                    " (" + str(max_key + 1) + ") was created successfully!")
@@ -1306,6 +1306,51 @@ def zoom_handler(bot, update, chat_data, args):
         bot.send_photo(chat_id=chat_id, photo=result[1])
 
 
+def contour_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+
+    # Args are: {optional plot_id} {optional toggle for labels}
+    if len(args) > 2:
+        send_message(bot, chat_id, "usage: /contour {plot_id} {optional 0/1 toggle for labels}")
+        return
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
+    try:
+        plot_id = int(args[0]) if len(args) >= 1 else int(max({k:v for k, v in chat_data["plots"].items()
+                                                               if k not in chat_data["archived"]}.keys()))
+        toggle = 1 if len(args) != 2 else int(args[1])
+    except ValueError:
+        send_message(bot, chat_id, "The plot ID and optional toggle must be an integer!")
+        return
+
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    if len(plot.get_points()) < 2:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") must have at least 2 points!")
+
+    toggle_labels = True if toggle > 0 else False
+    result = plot.generate_plot(toggle_labels=toggle_labels, contour=True)
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        bot.send_photo(chat_id=chat_id, photo=result[1])
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -1354,6 +1399,7 @@ if __name__ == "__main__":
     whosplotted_aliases = ["whosplotted", "whoops", "wps"]
     triangle_plot_aliases = ["triangleplot", "tp"]
     zoom_aliases = ["zoom", "z", "sonic", "sanic"]
+    contour_aliases = ["contour", "cont", "ilikecircles"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1384,7 +1430,8 @@ if __name__ == "__main__":
                 ("last_updated", 2, last_updated_aliases),
                 ("whos_plotted", 2, whosplotted_aliases),
                 ("triangle_plot", 2, triangle_plot_aliases),
-                ("zoom", 2, zoom_aliases)]
+                ("zoom", 2, zoom_aliases),
+                ("contour", 2, contour_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

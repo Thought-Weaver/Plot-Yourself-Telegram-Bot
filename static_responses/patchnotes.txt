@@ -1,19 +1,10 @@
-Patch Notes (11/11/2019):
+Patch Notes (11/13/2019):
 
 New Features:
 
--Plots now display their ID above the title.
--Plots now display automatically when created.
--Added /lastupdated {plot_id} to check when a plot was last updated.
--/showplot now defaults to the most recently made plot.
--/plotme now supports optional error bars.
-    * You must specify all args to use error bars:
-    * /pm 51 2 3 0.2 0.2
--Scoreboard is now sorted by number of wins, then average difference for ties.
--Added /whosplotted {plot_id} to see who has plotted themselves on that plot.
--Added /triangleplot for triangular plots!
--Added /zoom {plot_id} {min_x} {min_y} {max_x} {max_y} to zoom in on plots!
+-Added /contour {plot_id} {label toggle} to create contour plots.
+-Better (behind-the-scenes) support for turning default plots into line plots.
 
 Bug Fixes:
 
--Fixed a reversed axes issue on default plots.
+-Fixed an issue where Alignment Charts and Boxed Plots wouldn't be created in the proper plot list.
