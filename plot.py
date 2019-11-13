@@ -122,16 +122,15 @@ class Plot:
         if contour:
             xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
             yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            z = np.sqrt(np.array(X) ** 2 + np.array(Y) ** 2)
             triang = tri.Triangulation(np.array(X), np.array(Y))
-            interpolator = tri.LinearTriInterpolator(triang, np.array(X) *
-                                                             np.exp(-np.array(X) ** 2 - np.array(Y) ** 2))
+            interpolator = tri.LinearTriInterpolator(triang, z)
             Xi, Yi = np.meshgrid(xi, yi)
             zi = interpolator(Xi, Yi)
 
             plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
             cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
             fig.colorbar(cntr)
-
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -400,9 +399,9 @@ class BoxedPlot:
         if contour:
             xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
             yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            z = np.sqrt(np.array(X) ** 2 + np.array(Y) ** 2)
             triang = tri.Triangulation(np.array(X), np.array(Y))
-            interpolator = tri.LinearTriInterpolator(triang, np.array(X) *
-                                                             np.exp(-np.array(X) ** 2 - np.array(Y) ** 2))
+            interpolator = tri.LinearTriInterpolator(triang, z)
             Xi, Yi = np.meshgrid(xi, yi)
             zi = interpolator(Xi, Yi)
 
@@ -684,9 +683,9 @@ class AlignmentChart:
         if contour:
             xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
             yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            z = np.sqrt(np.array(X) ** 2 + np.array(Y) ** 2)
             triang = tri.Triangulation(np.array(X), np.array(Y))
-            interpolator = tri.LinearTriInterpolator(triang, np.array(X) *
-                                                             np.exp(-np.array(X) ** 2 - np.array(Y) ** 2))
+            interpolator = tri.LinearTriInterpolator(triang, z)
             Xi, Yi = np.meshgrid(xi, yi)
             zi = interpolator(Xi, Yi)
 
@@ -959,9 +958,9 @@ class TrianglePlot:
         if contour:
             xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
             yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            z = np.sqrt(np.array(X) ** 2 + np.array(Y) ** 2)
             triang = tri.Triangulation(np.array(X), np.array(Y))
-            interpolator = tri.LinearTriInterpolator(triang, np.array(X) *
-                                                             np.exp(-np.array(X) ** 2 - np.array(Y) ** 2))
+            interpolator = tri.LinearTriInterpolator(triang, z)
             Xi, Yi = np.meshgrid(xi, yi)
             zi = interpolator(Xi, Yi)
 
