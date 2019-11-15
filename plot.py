@@ -299,6 +299,9 @@ class Plot:
     def set_last_modified(self, timestamp):
         self.__last_modified = timestamp
 
+    def set_creator(self, username, user_id):
+        self.__createdby = (username, user_id)
+
 
 class BoxedPlot:
     # We'll define horiz = [h1, h2, h3], vertical = [v1, v2, v3]
@@ -588,6 +591,9 @@ class BoxedPlot:
 
     def set_last_modified(self, timestamp):
         self.__last_modified = timestamp
+
+    def set_creator(self, username, user_id):
+        self.__createdby = (username, user_id)
 
 
 class AlignmentChart:
@@ -880,6 +886,9 @@ class AlignmentChart:
     def set_last_modified(self, timestamp):
         self.__last_modified = timestamp
 
+    def set_creator(self, username, user_id):
+        self.__createdby = (username, user_id)
+
 
 class TrianglePlot:
     def __init__(self, name, xaxisleft, xaxisright, yaxistop, createdby, id, custompoints=False):
@@ -1149,3 +1158,6 @@ class TrianglePlot:
 
     def set_last_modified(self, timestamp):
         self.__last_modified = timestamp
+
+    def set_creator(self, username, user_id):
+        self.__createdby = (username, user_id)

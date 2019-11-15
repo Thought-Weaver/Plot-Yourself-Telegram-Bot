@@ -115,7 +115,7 @@ def create_plot_handler(bot, update, chat_data, args):
                 plot_args.get("maxx") if plot_args.get("maxx") is not None else 10,
                 plot_args.get("miny") if plot_args.get("miny") is not None else -10,
                 plot_args.get("maxy") if plot_args.get("maxy") is not None else 10,
-                username,
+                (username, user.id),
                 max_key + 1,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
     chat_data["plots"][max_key + 1] = plot
@@ -159,7 +159,13 @@ def remove_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
-    if str(plot.get_creator()) != str(username):
+    if not isinstance(plot.get_creator(), tuple) and str(plot.get_creator()) == str(username):
+        plot.set_creator(username, user.id)
+    if not isinstance(plot.get_creator(), tuple) and str(plot.get_creator()) != str(username):
+        send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
+        return
+
+    if str(plot.get_creator()[1]) != str(user.id):
         send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
         return
 
@@ -483,7 +489,11 @@ def whomademe_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
-    send_message(bot, chat_id, "Plot (" + str(plot_id) + ") was made by: " + str(plot.get_creator()))
+    if not isinstance(plot.get_creator(), tuple):
+        send_message(bot, chat_id, "Plot (" + str(plot_id) + ") was made by: " + str(plot.get_creator()))
+        return
+
+    send_message(bot, chat_id, "Plot (" + str(plot_id) + ") was made by: " + str(plot.get_creator()[0]))
 
 
 def custom_point_handler(bot, update, chat_data, args):
@@ -524,7 +534,10 @@ def custom_point_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
-    if str(plot.get_creator()) != str(username):
+    if not isinstance(plot.get_creator(), tuple) and str(plot.get_creator()) == str(username):
+        plot.set_creator(username, user.id)
+
+    if str(plot.get_creator()[1]) != str(user.id):
         send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
         return
 
@@ -593,7 +606,7 @@ def boxed_plot_handler(bot, update, chat_data, args):
     plot = BoxedPlot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
                 horiz,
                 vert,
-                username,
+                (username, user.id),
                 max_key + 1,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
     chat_data["plots"][max_key + 1] = plot
@@ -899,7 +912,10 @@ def edit_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
-    if str(plot.get_creator()) != str(username):
+    if not isinstance(plot.get_creator(), tuple) and str(plot.get_creator()) == str(username):
+        plot.set_creator(username, user.id)
+
+    if str(plot.get_creator()[1]) != str(user.id):
         send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
         return
 
@@ -973,7 +989,7 @@ def alignment_chart_handler(bot, update, chat_data, args):
     max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
     plot = AlignmentChart(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
                 labels,
-                username,
+                (username, user.id),
                 max_key + 1,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
     chat_data["plots"][max_key + 1] = plot
@@ -1018,7 +1034,13 @@ def archive_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
-    if str(plot.get_creator()) != str(username):
+    if not isinstance(plot.get_creator(), tuple) and str(plot.get_creator()) == str(username):
+        plot.set_creator(username, user.id)
+    if not isinstance(plot.get_creator(), tuple) and str(plot.get_creator()) != str(username):
+        send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
+        return
+
+    if str(plot.get_creator()[1]) != str(user.id):
         send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
         return
 
@@ -1067,7 +1089,13 @@ def unarchive_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
-    if str(plot.get_creator()) != str(username):
+    if not isinstance(plot.get_creator(), tuple) and str(plot.get_creator()) == str(username):
+        plot.set_creator(username, user.id)
+    if not isinstance(plot.get_creator(), tuple) and str(plot.get_creator()) != str(username):
+        send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
+        return
+
+    if str(plot.get_creator()[1]) != str(user.id):
         send_message(bot, chat_id, "You didn't make that plot (" + str(plot_id) + ")!")
         return
 
@@ -1105,8 +1133,13 @@ def my_plots_handler(bot, update, chat_data):
 
     text = "Your plots:\n\n"
     for (key, value) in chat_data["plots"].items():
-        if isinstance(key, int) and value.get_creator() == username:
-            text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
+        if isinstance(key, int):
+            creator = value.get_creator()
+            if isinstance(creator, tuple) and str(creator[1]) == str(user_id):
+                text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
+            elif not isinstance(creator, tuple) and str(creator) == str(username):
+                text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
+                value.set_creator(username, user_id)
     send_message(bot, user_id, text)
 
 
@@ -1132,8 +1165,13 @@ def archive_all_handler(bot, update, chat_data):
         chat_data["archived"] = {}
 
     for (key, value) in chat_data["plots"].items():
-        if isinstance(key, int) and value.get_creator() == username and key not in chat_data["archived"].keys():
-            chat_data["archived"][key] = value
+        if isinstance(key, int) and key not in chat_data["archived"].keys():
+            creator = value.get_creator()
+            if isinstance(creator, tuple) and str(creator[1]) == str(user.id):
+                chat_data["archived"][key] = value
+            elif not isinstance(creator, tuple) and str(creator) == str(username):
+                chat_data["archived"][key] = value
+                value.set_creator(username, user.id)
 
     send_message(bot, chat_id, "Your plots have been archived.")
 
@@ -1160,8 +1198,13 @@ def unarchive_all_handler(bot, update, chat_data):
         chat_data["archived"] = {}
 
     for (key, value) in chat_data["plots"].items():
-        if isinstance(key, int) and value.get_creator() == username and key in chat_data["archived"].keys():
-            del chat_data["archived"][key]
+        if isinstance(key, int) and key in chat_data["archived"].keys():
+            creator = value.get_creator()
+            if isinstance(creator, tuple) and str(creator[1]) == str(user.id):
+                del chat_data["archived"][key]
+            elif not isinstance(creator, tuple) and str(creator) == str(username):
+                del chat_data["archived"][key]
+                value.set_creator(username, user.id)
 
     send_message(bot, chat_id, "Your plots have been unarchived.")
 
@@ -1255,7 +1298,7 @@ def triangle_plot_handler(bot, update, chat_data, args):
                 " ".join(plot_args.get("xleft")) if plot_args.get("xleft") is not None else None,
                 " ".join(plot_args.get("xright")) if plot_args.get("xright") is not None else None,
                 " ".join(plot_args.get("ytop")) if plot_args.get("ytop") is not None else None,
-                username,
+                (username, user.id),
                 max_key + 1,
                 plot_args.get("custompoints") if plot_args.get("custompoints") is not None else False)
     chat_data["plots"][max_key + 1] = plot
@@ -1399,7 +1442,7 @@ if __name__ == "__main__":
     whosplotted_aliases = ["whosplotted", "whoops", "wps"]
     triangle_plot_aliases = ["triangleplot", "tp"]
     zoom_aliases = ["zoom", "z", "sonic", "sanic"]
-    contour_aliases = ["contour", "cont", "ilikecircles"]
+    contour_aliases = ["contour", "cont", "ilikerings"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
