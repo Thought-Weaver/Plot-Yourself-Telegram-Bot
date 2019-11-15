@@ -1,1 +1,1 @@
-Welcome to the Plot Yourself Bot, a bot for making plots! To learn more about how to use the bot, make sure to send me a DM and use /help. You also need to DM me (only once) if you want to use /myplots. Have fun plotting!
+Welcome to the Plot Yourself Bot, a bot for making plots! To learn more about how to use the bot, make sure to send me a DM and use /help. You also need to DM me (only once) if you want to use /myplots, /mybetdata, or /bethistory. Have fun plotting!

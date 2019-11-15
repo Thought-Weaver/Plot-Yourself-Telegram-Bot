@@ -1,10 +1,14 @@
-Patch Notes (11/13/2019):
+Patch Notes (11/15/2019):
 
 New Features:
 
--Added /contour {plot_id} {label toggle} to create contour plots.
--Better (behind-the-scenes) support for turning default plots into line plots.
+-Added black dot in the contour plots to denote the center of the data.
+-Updated how plots refer to their creators.
+-Changed the alias /ilikecircles for /contour to be /ilikerings.
+-Added extensive bet data (history of all bets, individual user stats, etc.)!
+    * Use /mybetdata to see your data.
+    * Use /bethistory to see the history of all bets.
 
 Bug Fixes:
 
--Fixed an issue where Alignment Charts and Boxed Plots wouldn't be created in the proper plot list.
+-Fixed a bug where contour plots would overlay the contour on the scatter points.
