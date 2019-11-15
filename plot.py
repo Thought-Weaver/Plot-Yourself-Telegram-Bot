@@ -85,6 +85,24 @@ class Plot:
             plt.grid(True)
         if not contour:
             plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
+        else:
+            center_x = sum(X) / len(X)
+            center_y = sum(Y) / len(Y)
+            colors.append((0, 0, 0))
+            labels.append("")
+            X.append(center_x)
+            Y.append(center_y)
+            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
+            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            z = np.sqrt((np.array(X) - center_x) ** 2 + (np.array(Y) - center_y) ** 2)
+            triang = tri.Triangulation(np.array(X), np.array(Y))
+            interpolator = tri.LinearTriInterpolator(triang, z)
+            Xi, Yi = np.meshgrid(xi, yi)
+            zi = interpolator(Xi, Yi)
+
+            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
+            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+            fig.colorbar(cntr)
         plt.scatter(X, Y, c=colors)
 
         if self.__minx != self.__maxx:
@@ -118,23 +136,6 @@ class Plot:
         plt.ylim(bottom=self.__miny, top=self.__maxy)
         if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
             plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
-
-        if contour:
-            center_x = sum(X) / len(X)
-            center_y = sum(Y) / len(Y)
-            X.append(center_x)
-            Y.append(center_y)
-            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
-            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
-            z = np.sqrt((np.array(X) - center_x) ** 2 + (np.array(Y) - center_y) ** 2)
-            triang = tri.Triangulation(np.array(X), np.array(Y))
-            interpolator = tri.LinearTriInterpolator(triang, z)
-            Xi, Yi = np.meshgrid(xi, yi)
-            zi = interpolator(Xi, Yi)
-
-            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
-            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
-            fig.colorbar(cntr)
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -361,7 +362,27 @@ class BoxedPlot:
 
         fig = plt.figure()
         plt.grid(False)
-        plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
+        if not contour:
+            plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
+        else:
+            center_x = sum(X) / len(X)
+            center_y = sum(Y) / len(Y)
+            colors.append((0, 0, 0))
+            labels.append("")
+            X.append(center_x)
+            Y.append(center_y)
+            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
+            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            z = np.sqrt((np.array(X) - center_x) ** 2 + (np.array(Y) - center_y) ** 2)
+            triang = tri.Triangulation(np.array(X), np.array(Y))
+            interpolator = tri.LinearTriInterpolator(triang, z)
+            Xi, Yi = np.meshgrid(xi, yi)
+            zi = interpolator(Xi, Yi)
+
+            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
+            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+            fig.colorbar(cntr)
+
         plt.scatter(X, Y, c=colors)
         plt.axhline(y=self.__minx, color='k')
         plt.axvline(x=self.__miny, color='k')
@@ -399,23 +420,6 @@ class BoxedPlot:
         if self.__name is not None:
             plt.title(str(self.__name))
         plt.suptitle("ID: (" + str(self.__id) + ")")
-
-        if contour:
-            center_x = sum(X) / len(X)
-            center_y = sum(Y) / len(Y)
-            X.append(center_x)
-            Y.append(center_y)
-            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
-            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
-            z = np.sqrt((np.array(X) - center_x) ** 2 + (np.array(Y) - center_y) ** 2)
-            triang = tri.Triangulation(np.array(X), np.array(Y))
-            interpolator = tri.LinearTriInterpolator(triang, z)
-            Xi, Yi = np.meshgrid(xi, yi)
-            zi = interpolator(Xi, Yi)
-
-            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
-            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
-            fig.colorbar(cntr)
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -648,7 +652,28 @@ class AlignmentChart:
 
         fig = plt.figure()
         plt.grid(False)
-        plt.errorbar(X, Y, xerr=err_X, yerr=err_X, ecolor=colors, linestyle="None")
+
+        if not contour:
+            plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
+        else:
+            center_x = sum(X) / len(X)
+            center_y = sum(Y) / len(Y)
+            colors.append((0, 0, 0))
+            labels.append("")
+            X.append(center_x)
+            Y.append(center_y)
+            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
+            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            z = np.sqrt((np.array(X) - center_x) ** 2 + (np.array(Y) - center_y) ** 2)
+            triang = tri.Triangulation(np.array(X), np.array(Y))
+            interpolator = tri.LinearTriInterpolator(triang, z)
+            Xi, Yi = np.meshgrid(xi, yi)
+            zi = interpolator(Xi, Yi)
+
+            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
+            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+            fig.colorbar(cntr)
+
         plt.scatter(X, Y, c=colors)
         plt.axhline(y=self.__minx, color='k')
         plt.axvline(x=self.__miny, color='k')
@@ -687,23 +712,6 @@ class AlignmentChart:
         if self.__name is not None:
             plt.title(str(self.__name))
         plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
-
-        if contour:
-            center_x = sum(X) / len(X)
-            center_y = sum(Y) / len(Y)
-            X.append(center_x)
-            Y.append(center_y)
-            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
-            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
-            z = np.sqrt((np.array(X) - center_x) ** 2 + (np.array(Y) - center_y) ** 2)
-            triang = tri.Triangulation(np.array(X), np.array(Y))
-            interpolator = tri.LinearTriInterpolator(triang, z)
-            Xi, Yi = np.meshgrid(xi, yi)
-            zi = interpolator(Xi, Yi)
-
-            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
-            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
-            fig.colorbar(cntr)
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -938,7 +946,28 @@ class TrianglePlot:
 
         fig = plt.figure()
         plt.grid(False)
-        plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
+
+        if not contour:
+            plt.errorbar(X, Y, xerr=err_X, yerr=err_Y, ecolor=colors, linestyle="None")
+        else:
+            center_x = sum(X) / len(X)
+            center_y = sum(Y) / len(Y)
+            colors.append((0, 0, 0))
+            labels.append("")
+            X.append(center_x)
+            Y.append(center_y)
+            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
+            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
+            z = np.sqrt((np.array(X) - center_x) ** 2 + (np.array(Y) - center_y) ** 2)
+            triang = tri.Triangulation(np.array(X), np.array(Y))
+            interpolator = tri.LinearTriInterpolator(triang, z)
+            Xi, Yi = np.meshgrid(xi, yi)
+            zi = interpolator(Xi, Yi)
+
+            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
+            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+            fig.colorbar(cntr)
+
         plt.scatter(X, Y, c=colors)
 
         triangle = plt.Polygon([[self.__minx, self.__miny], [self.__maxx / 2, self.__maxy], [self.__maxx, self.__miny]], fill=False, color='k')
@@ -966,23 +995,6 @@ class TrianglePlot:
         plt.ylim(bottom=self.__miny, top=self.__maxy)
         if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
             plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
-
-        if contour:
-            center_x = sum(X) / len(X)
-            center_y = sum(Y) / len(Y)
-            X.append(center_x)
-            Y.append(center_y)
-            xi = np.linspace(self.__minx, self.__maxx, 10 * (abs(self.__maxx) + abs(self.__minx)))
-            yi = np.linspace(self.__miny, self.__maxy, 10 * (abs(self.__maxy) + abs(self.__miny)))
-            z = np.sqrt((np.array(X) - center_x) ** 2 + (np.array(Y) - center_y) ** 2)
-            triang = tri.Triangulation(np.array(X), np.array(Y))
-            interpolator = tri.LinearTriInterpolator(triang, z)
-            Xi, Yi = np.meshgrid(xi, yi)
-            zi = interpolator(Xi, Yi)
-
-            plt.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
-            cntr = plt.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
-            fig.colorbar(cntr)
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
