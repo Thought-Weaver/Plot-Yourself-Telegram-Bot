@@ -686,7 +686,7 @@ def my_bet_handler(bot, update, chat_data, args):
         return
 
     # We assume there can only be one bet at a time. This has an associated degree and plot ID.
-    chat_data["current_bet"]["bets"][username] = R2
+    chat_data["current_bet"]["bets"][(username, user.id)] = R2
     send_message(bot, chat_id, "Your bet has been placed!")
 
 
@@ -773,13 +773,14 @@ def complete_bet_handler(bot, update, chat_data):
         return
     elif result[0] == 0:
         best = ""
+        best_id = 0
         bestr2 = 0
         best_diff = 2e30
-        for username, value in chat_data["current_bet"]["bets"].items():
+        for (username, user_id), value in chat_data["current_bet"]["bets"].items():
             diff = abs(value - result[1][1])
 
-            if chat_data["all_user_bet_data"].get(username) is None:
-                chat_data["all_user_bet_data"][username] = {
+            if chat_data["all_user_bet_data"].get(user_id) is None:
+                chat_data["all_user_bet_data"][user_id] = {
                     "total_wins" : 0,
                     "win_keys" : [],
                     "total_bets" : 0,
@@ -789,11 +790,11 @@ def complete_bet_handler(bot, update, chat_data):
                 }
 
             # We update the user's running average of diffs, then store the bet info in the user data for easy reference.
-            chat_data["all_user_bet_data"][username]["avg_diff"] *= chat_data["all_user_bet_data"][username]["total_bets"]
-            chat_data["all_user_bet_data"][username]["total_bets"] += 1
-            chat_data["all_user_bet_data"][username]["avg_diff"] += diff
-            chat_data["all_user_bet_data"][username]["avg_diff"] /= chat_data["all_user_bet_data"][username]["total_bets"]
-            chat_data["all_user_bet_data"][username]["bets"][chat_data["current_bet"]["created_at"]] = {
+            chat_data["all_user_bet_data"][user_id]["avg_diff"] *= chat_data["all_user_bet_data"][user_id]["total_bets"]
+            chat_data["all_user_bet_data"][user_id]["total_bets"] += 1
+            chat_data["all_user_bet_data"][user_id]["avg_diff"] += diff
+            chat_data["all_user_bet_data"][user_id]["avg_diff"] /= chat_data["all_user_bet_data"][user_id]["total_bets"]
+            chat_data["all_user_bet_data"][user_id]["bets"][chat_data["current_bet"]["created_at"]] = {
                 "plot_id" : chat_data["current_bet"]["plot_id"],
                 "degree"  : chat_data["current_bet"]["degree"],
                 "bet"     : value
@@ -802,6 +803,7 @@ def complete_bet_handler(bot, update, chat_data):
             if diff < best_diff:
                 best_diff = diff
                 best = username
+                best_id = user_id
                 bestr2 = value
 
         bot.send_photo(chat_id=chat_id, photo=result[1][0])
@@ -813,24 +815,24 @@ def complete_bet_handler(bot, update, chat_data):
         if chat_data.get("scoreboard_avg") is None:
             chat_data["scoreboard_avg"] = {}
 
-        if chat_data["scoreboard"].get(best) is None:
-            chat_data["scoreboard"][best] = 1
+        if chat_data["scoreboard"].get(best_id) is None:
+            chat_data["scoreboard"][best_id] = 1
         else:
-            chat_data["scoreboard"][best] += 1
+            chat_data["scoreboard"][best_id] += 1
 
-        if chat_data["scoreboard_avg"].get(best) is None:
-            chat_data["scoreboard_avg"][best] = best_diff
+        if chat_data["scoreboard_avg"].get(best_id) is None:
+            chat_data["scoreboard_avg"][best_id] = best_diff
         else:
             # sum(x_i) / (n - 1) is currently stored.
             # (sum(x_i) + y) / n (n - 1) / (n - 1) clearly gives desired result.
-            chat_data["scoreboard_avg"][best] *= chat_data["scoreboard"][best] - 1
-            chat_data["scoreboard_avg"][best] += best_diff
-            chat_data["scoreboard_avg"][best] /= chat_data["scoreboard"][best]
+            chat_data["scoreboard_avg"][best_id] *= chat_data["scoreboard"][best_id] - 1
+            chat_data["scoreboard_avg"][best_id] += best_diff
+            chat_data["scoreboard_avg"][best_id] /= chat_data["scoreboard"][best_id]
 
         # Update the best user's wins and win avg diff. Add the key of this win for easy lookup in the user's bets.
-        chat_data["all_user_bet_data"][best]["win_avg_diff"] = chat_data["scoreboard_avg"][best]
-        chat_data["all_user_bet_data"][best]["total_wins"] += 1
-        chat_data["all_user_bet_data"][best]["win_keys"].append(chat_data["current_bet"]["created_at"])
+        chat_data["all_user_bet_data"][best_id]["win_avg_diff"] = chat_data["scoreboard_avg"][best_id]
+        chat_data["all_user_bet_data"][best_id]["total_wins"] += 1
+        chat_data["all_user_bet_data"][best_id]["win_keys"].append(chat_data["current_bet"]["created_at"])
 
         if chat_data.get("all_bets") is None:
             chat_data["all_bets"] = {}
@@ -838,6 +840,7 @@ def complete_bet_handler(bot, update, chat_data):
         # Store the current bet into the history. Also add winner data and actual R^2 to the bet.
         chat_data["all_bets"][chat_data["current_bet"]["created_at"]] = chat_data["current_bet"]
         chat_data["all_bets"][chat_data["current_bet"]["created_at"]]["winner"] = best
+        chat_data["all_bets"][chat_data["current_bet"]["created_at"]]["winner_id"] = best_id
         chat_data["all_bets"][chat_data["current_bet"]["created_at"]]["winner_value"] = bestr2
         chat_data["all_bets"][chat_data["current_bet"]["created_at"]]["actual_value"] = result[1][1]
 
@@ -866,8 +869,8 @@ def scoreboard_handler(bot, update, chat_data):
     highest.sort(key=lambda x: (-x[1], x[2]))
 
     for x in highest:
-        text += str(x[0]) + ": " + str(x[1]) + " with Avg Diff: " + \
-                str(chat_data["scoreboard_avg"][str(x[0])]) + "\n"
+        text += str(x[0][0]) + ": " + str(x[1]) + " with Avg Diff: " + \
+                str(chat_data["scoreboard_avg"][str(x[0][1])]) + "\n"
 
     send_message(bot, chat_id, text)
 
@@ -1439,28 +1442,19 @@ def my_bet_data_handler(bot, update, chat_data):
     chat_id = update.message.chat.id
     user = update.message.from_user
     user_id = user.id
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
 
     if chat_data.get("all_user_bet_data") is None:
         chat_data["all_user_bet_data"] = {}
 
-    if chat_data["all_user_bet_data"].get(username) is None:
+    if chat_data["all_user_bet_data"].get(user_id) is None:
         send_message(bot, chat_id, "You don't have any bet data!")
         return
 
     text = "Your bet data:\n\n" + \
-           "Total wins: " + str(chat_data["all_user_bet_data"][username].get("total_wins")) + "\n" + \
-           "Total bets: " + str(chat_data["all_user_bet_data"][username].get("total_bets")) + "\n" +  \
-           "Average Difference: " + str(chat_data["all_user_bet_data"][username].get("avg_diff")) + "\n" +  \
-           "Winning Average Difference: " + str(chat_data["all_user_bet_data"][username].get("win_avg_diff"))
+           "Total wins: " + str(chat_data["all_user_bet_data"][user_id].get("total_wins")) + "\n" + \
+           "Total bets: " + str(chat_data["all_user_bet_data"][user_id].get("total_bets")) + "\n" +  \
+           "Average Difference: " + str(chat_data["all_user_bet_data"][user_id].get("avg_diff")) + "\n" +  \
+           "Winning Average Difference: " + str(chat_data["all_user_bet_data"][user_id].get("win_avg_diff"))
     send_message(bot, user_id, text)
 
 
@@ -1482,7 +1476,7 @@ def bet_history_handler(bot, update, chat_data):
                 "\nWinner R^2: " + str(chat_data["all_bets"][key].get("winner_value")) + \
                 "\nActual R^2: " + str(chat_data["all_bets"][key].get("actual_value"))
         text += "\n\nBets:\n\n"
-        for (username, value) in chat_data["all_bets"][key]["bets"].items():
+        for ((username, id), value) in chat_data["all_bets"][key]["bets"].items():
             text += str(username) + ": " + str(value) + "\n"
         text += "\n---\n\n"
 
