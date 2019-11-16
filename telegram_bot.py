@@ -815,24 +815,24 @@ def complete_bet_handler(bot, update, chat_data):
         if chat_data.get("scoreboard_avg") is None:
             chat_data["scoreboard_avg"] = {}
 
-        if chat_data["scoreboard"].get(best_id) is None:
-            chat_data["scoreboard"][best_id] = 1
+        if chat_data["scoreboard"].get((best, best_id)) is None:
+            chat_data["scoreboard"][(best, best_id)] = 1
         else:
-            chat_data["scoreboard"][best_id] += 1
+            chat_data["scoreboard"][(best, best_id)] += 1
 
-        if chat_data["scoreboard_avg"].get(best_id) is None:
-            chat_data["scoreboard_avg"][best_id] = best_diff
+        if chat_data["scoreboard_avg"].get((best, best_id)) is None:
+            chat_data["scoreboard_avg"][(best, best_id)] = best_diff
         else:
             # sum(x_i) / (n - 1) is currently stored.
             # (sum(x_i) + y) / n (n - 1) / (n - 1) clearly gives desired result.
-            chat_data["scoreboard_avg"][best_id] *= chat_data["scoreboard"][best_id] - 1
-            chat_data["scoreboard_avg"][best_id] += best_diff
-            chat_data["scoreboard_avg"][best_id] /= chat_data["scoreboard"][best_id]
+            chat_data["scoreboard_avg"][(best, best_id)] *= chat_data["scoreboard"][(best, best_id)] - 1
+            chat_data["scoreboard_avg"][(best, best_id)] += best_diff
+            chat_data["scoreboard_avg"][(best, best_id)] /= chat_data["scoreboard"][(best, best_id)]
 
         # Update the best user's wins and win avg diff. Add the key of this win for easy lookup in the user's bets.
-        chat_data["all_user_bet_data"][best_id]["win_avg_diff"] = chat_data["scoreboard_avg"][best_id]
-        chat_data["all_user_bet_data"][best_id]["total_wins"] += 1
-        chat_data["all_user_bet_data"][best_id]["win_keys"].append(chat_data["current_bet"]["created_at"])
+        chat_data["all_user_bet_data"][(best, best_id)]["win_avg_diff"] = chat_data["scoreboard_avg"][(best, best_id)]
+        chat_data["all_user_bet_data"][(best, best_id)]["total_wins"] += 1
+        chat_data["all_user_bet_data"][(best, best_id)]["win_keys"].append(chat_data["current_bet"]["created_at"])
 
         if chat_data.get("all_bets") is None:
             chat_data["all_bets"] = {}
@@ -861,16 +861,16 @@ def scoreboard_handler(bot, update, chat_data):
     text = "Top 3 Scoreboard:\n\n"
     for i in range(len(highest)):
         # Just in case, somehow, someone exists in scoreboard but not avg.
-        if chat_data["scoreboard_avg"].get(str(highest[i][0])) is None:
-            chat_data["scoreboard_avg"][str(highest[i][0])] = 0
+        if chat_data["scoreboard_avg"].get(highest[i][0]) is None:
+            chat_data["scoreboard_avg"][highest[i][0]] = 0
         highest[i] = (highest[i][0],
                       highest[i][1],
-                      chat_data["scoreboard_avg"][str(highest[i][0])])
+                      chat_data["scoreboard_avg"][highest[i][0]])
     highest.sort(key=lambda x: (-x[1], x[2]))
 
     for x in highest:
         text += str(x[0][0]) + ": " + str(x[1]) + " with Avg Diff: " + \
-                str(chat_data["scoreboard_avg"][str(x[0][1])]) + "\n"
+                str(chat_data["scoreboard_avg"][x[0]]) + "\n"
 
     send_message(bot, chat_id, text)
 
