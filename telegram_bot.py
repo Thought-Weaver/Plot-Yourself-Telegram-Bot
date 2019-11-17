@@ -830,9 +830,9 @@ def complete_bet_handler(bot, update, chat_data):
             chat_data["scoreboard_avg"][(best, best_id)] /= chat_data["scoreboard"][(best, best_id)]
 
         # Update the best user's wins and win avg diff. Add the key of this win for easy lookup in the user's bets.
-        chat_data["all_user_bet_data"][(best, best_id)]["win_avg_diff"] = chat_data["scoreboard_avg"][(best, best_id)]
-        chat_data["all_user_bet_data"][(best, best_id)]["total_wins"] += 1
-        chat_data["all_user_bet_data"][(best, best_id)]["win_keys"].append(chat_data["current_bet"]["created_at"])
+        chat_data["all_user_bet_data"][best_id]["win_avg_diff"] = chat_data["scoreboard_avg"][(best, best_id)]
+        chat_data["all_user_bet_data"][best_id]["total_wins"] += 1
+        chat_data["all_user_bet_data"][best_id]["win_keys"].append(chat_data["current_bet"]["created_at"])
 
         if chat_data.get("all_bets") is None:
             chat_data["all_bets"] = {}
