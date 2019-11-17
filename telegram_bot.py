@@ -990,7 +990,7 @@ def current_bet_handler(bot, update, chat_data):
         return
 
     text = "Current Bets:\n\n"
-    for (username, value) in chat_data["current_bet"]["bets"].items():
+    for ((username, id), value) in chat_data["current_bet"]["bets"].items():
         text += str(username) + ": " + str(value) + "\n"
     send_message(bot, chat_id, text)
 
