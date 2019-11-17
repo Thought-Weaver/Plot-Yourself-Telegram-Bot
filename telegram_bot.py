@@ -598,8 +598,8 @@ def boxed_plot_handler(bot, update, chat_data, args):
     ]
     vert = [
         " ".join(plot_args.get("vert3")) if plot_args.get("vert3") is not None else "",
-        " ".join(plot_args.get("vert1")) if plot_args.get("vert1") is not None else "",
-        " ".join(plot_args.get("vert2")) if plot_args.get("vert2") is not None else ""
+        " ".join(plot_args.get("vert2")) if plot_args.get("vert2") is not None else "",
+        " ".join(plot_args.get("vert1")) if plot_args.get("vert1") is not None else ""
     ]
 
     max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
