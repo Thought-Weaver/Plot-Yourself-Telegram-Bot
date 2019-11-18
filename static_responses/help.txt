@@ -20,7 +20,7 @@ Here's a list of helpful commands for making plots. For more information, see th
 /scoreboard
 /equation {plot_id} {optional degree}
 /editplot {plot_id} {args}
-/currentbet
+/currentbet {optional sortby}
 /alignmentchart --title {t} --label1 {l1} --label2 {l2} --label3 {l3} --label3 {l3} --label4 {l4} --label5 {l5} --label6 {l6} --label7 {l7} --label8 {l8} --label9 {l9} --custompoints
 /archive {plot_id}
 /unarchive {plot_id}
@@ -35,6 +35,7 @@ Here's a list of helpful commands for making plots. For more information, see th
 /contour {plot_id} {optional label toggle}
 /bethistory
 /mybetdata
+/percentplotme {plot_id} {percent x} {percent y} {err_x} {err_y}
 
 Note that all the arguments for /createplot and /boxedplot are optional. Also note that the default bounds on a plot are [-10, 10] on both axes. Here are a couple of examples:
 

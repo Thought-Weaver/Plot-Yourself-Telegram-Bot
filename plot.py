@@ -920,7 +920,9 @@ class TrianglePlot:
         return not (negative and positive)
 
     def plot_point(self, label, x, y, err_x=0, err_y=0):
-        if not self.__check_bounds(x + err_x, y + err_y) or not self.__check_bounds(x - err_x, y - err_y):
+        if not self.__check_bounds(x + err_x, y + err_y) or not self.__check_bounds(x - err_x, y - err_y)\
+                or not self.__check_bounds(x + err_x, y) or not self.__check_bounds(x, y + err_y) or\
+                not self.__check_bounds(x, y - err_y) or not self.__check_bounds(x - err_x, y):
             return 1, "Error: Plot point and error cannot be out of triangle bounds!"
 
         for i in range(len(self.__points)):
@@ -994,11 +996,12 @@ class TrianglePlot:
             plt.xlabel(str(self.__xaxisright))
 
         if self.__yaxistop is not None:
-            plt.ylabel(str(self.__yaxistop))
+            plt.title(str(self.__yaxistop))
 
         if self.__name is not None:
-            plt.title(str(self.__name))
-        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
+            plt.ylabel(str("ID: (" + str(self.__id) + ")\n" + self.__name))
+        else:
+            plt.ylabel("ID: (" + str(self.__id) + ")")
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
@@ -1040,11 +1043,12 @@ class TrianglePlot:
             plt.xlabel(str(self.__xaxisright))
 
         if self.__yaxistop is not None:
-            plt.ylabel(str(self.__yaxistop))
+            plt.title(str(self.__yaxistop))
 
         if self.__name is not None:
-            plt.title(str(self.__name))
-        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
+            plt.ylabel("ID: (" + str(self.__id) + ")\n" + str(self.__name))
+        else:
+            plt.ylabel("ID: (" + str(self.__id) + ")")
 
         p = np.polynomial.polynomial.polyfit(X, Y, deg)
         f = np.poly1d(p[::-1])

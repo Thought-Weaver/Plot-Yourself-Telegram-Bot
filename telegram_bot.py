@@ -11,6 +11,7 @@ import os
 import argparse
 from collections import Counter, OrderedDict
 import datetime
+from operator import itemgetter
 
 from plot import Plot, BoxedPlot, AlignmentChart, TrianglePlot
 
@@ -974,11 +975,22 @@ def edit_plot_handler(bot, update, chat_data, args):
     send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been updated!")
 
 
-def current_bet_handler(bot, update, chat_data):
+def current_bet_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
 
     if chat_data.get("current_bet") is None:
         send_message(bot, chat_id, "No bet currently exists!")
+        return
+
+    # Args are: {optional sort method}
+    if len(args) > 1:
+        send_message(bot, chat_id, "usage: /currentbet {optional sort method}")
+        return
+
+    try:
+        sortby = int(args[0]) if len(args) == 1 else 0
+    except ValueError:
+        send_message(bot, chat_id, "Sorting method must be an int!")
         return
 
     send_message(bot, chat_id, "The following bet is in progress:\n\nPlot ID: " +
@@ -989,8 +1001,17 @@ def current_bet_handler(bot, update, chat_data):
         send_message(bot, chat_id, "No one has yet placed a bet!")
         return
 
+    sorted_dict = chat_data["current_bet"]["bets"]
+
+    # If sortby <= 0, leave it as is.
+    if sortby == 1:
+        sorted_dict = OrderedDict(sorted(chat_data["current_bet"]["bets"].items(), key=itemgetter(0)))
+    elif sortby >= 2:
+        sorted_dict = OrderedDict(sorted(chat_data["current_bet"]["bets"].items(),
+                                         key=itemgetter(1), reverse=True))
+
     text = "Current Bets:\n\n"
-    for ((username, id), value) in chat_data["current_bet"]["bets"].items():
+    for ((username, id), value) in sorted_dict.items():
         text += str(username) + ": " + str(value) + "\n"
     send_message(bot, chat_id, text)
 
@@ -1485,6 +1506,100 @@ def bet_history_handler(bot, update, chat_data):
         text = ""
 
 
+def percent_plot_me_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    # Assume that percent_x and percent_y are entered out of 100.
+    if len(args) < 2 or len(args) > 5:
+        send_message(bot, chat_id, "usage: /percentplotme {plot_id} {percent x} {percent y} {err_x} {err_y}")
+        return
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
+    try:
+        # Select the most recent (max) key from plots that aren't archived by default.
+        plot_id = int(args[0]) if len(args) >= 3 else int(max({k: v for k, v in chat_data["plots"].items()
+                                                               if k not in chat_data["archived"]}.keys()))
+        percent_x = float(args[1] if len(args) >= 3 else args[0])
+        percent_y = float(args[2] if len(args) >= 3 else args[1])
+        err_x = float(args[3] if len(args) >= 4 else 0)
+        err_y = float(args[4] if len(args) == 5 else 0)
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID must be an int and percent x, percent y, err_x, err_y must be floats!")
+        return
+
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    # This check is technically unnecessary since the plot will catch out of bounds points,
+    # but it gives the user a slightly more informative error message.
+    if percent_x > 100 or percent_x < -100 or percent_y > 100 or percent_y < -100:
+        send_message(bot, chat_id, "The percents entered must be within [-100, 100]!")
+        return
+
+    min_x = plot.get_minx()
+    max_x = plot.get_maxx()
+    min_y = plot.get_miny()
+    max_y = plot.get_maxy()
+    x = 0
+    y = 0
+
+    if percent_x >= 0:
+        x = percent_x / 100 * max_x
+    else:
+        x = abs(percent_x) / 100 * min_x
+
+    if not isinstance(plot, TrianglePlot):
+        if percent_y >= 0:
+            y = percent_y / 100 * max_y
+        else:
+            y = abs(percent_y) / 100 * min_y
+    else:
+        height = max_y - min_y
+        dist_abs_diff = 1 - (abs(max_x / 2 - x) / (max_x / 2))
+        y = dist_abs_diff * height * percent_y / 100
+
+    result = plot.plot_point(username, x, y, err_x=err_x, err_y=err_y)
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        img = plot.generate_plot()
+
+        if img is None:
+            return
+
+        if img[0] == 1:
+            send_message(bot, chat_id, img[1])
+            return
+        elif img[0] == 0:
+            bot.send_photo(chat_id=chat_id, photo=img[1])
+
+        chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -1498,7 +1613,7 @@ if __name__ == "__main__":
     updater = Updater(token=TOKEN, persistence=pp)
     dispatcher = updater.dispatcher
 
-    static_commands = ["start", "help", "patchnotes"]
+    static_commands = ["start", "help", "patchnotes", "kevinmemorial"]
     for c in static_commands:
         dispatcher.add_handler(static_handler(c))
 
@@ -1536,6 +1651,7 @@ if __name__ == "__main__":
     contour_aliases = ["contour", "cont", "ilikerings"]
     my_bet_data_aliases = ["mybetdata", "mbd"]
     bet_history_aliases = ["bethistory", "bh"]
+    percent_plot_me_aliases = ["percentplotme", "ppm", "ratioplotme", "rpm"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1555,7 +1671,7 @@ if __name__ == "__main__":
                 ("scoreboard", 1, scoreboard_aliases),
                 ("equation", 2, equation_aliases),
                 ("edit_plot", 2, edit_plot_aliases),
-                ("current_bet", 1, current_bet_aliases),
+                ("current_bet", 2, current_bet_aliases),
                 ("alignment_chart", 2, alignment_chart_aliases),
                 ("archive", 2, archive_aliases),
                 ("unarchive", 2, unarchive_aliases),
@@ -1569,7 +1685,8 @@ if __name__ == "__main__":
                 ("zoom", 2, zoom_aliases),
                 ("contour", 2, contour_aliases),
                 ("my_bet_data", 1, my_bet_data_aliases),
-                ("bet_history", 1, bet_history_aliases)]
+                ("bet_history", 1, bet_history_aliases),
+                ("percent_plot_me", 2, percent_plot_me_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

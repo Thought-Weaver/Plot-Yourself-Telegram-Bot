@@ -1,14 +1,15 @@
-Patch Notes (11/15/2019):
+Patch Notes (11/18/2019):
 
 New Features:
 
--Added black dot in the contour plots to denote the center of the data.
--Updated how plots refer to their creators.
--Changed the alias /ilikecircles for /contour to be /ilikerings.
--Added extensive bet data (history of all bets, individual user stats, etc.)!
-    * Use /mybetdata to see your data.
-    * Use /bethistory to see the history of all bets.
+-Added /percentplotme to percent yourself at a certain percent of a plot's bounds.
+-Added sorting options to /currentbet {optional sortby}.
+    * 0 or less sorts it by input time.
+    * 1 sorts it by name.
+    * 2 sorts it by R^2 value.
+-Rearranged the y-axis label and title on Triangle plots to be more logical.
+-Added /kevinmemorial.
 
 Bug Fixes:
 
--Fixed a bug where contour plots would overlay the contour on the scatter points.
+-Fixed a bug where Triangle plots could have error bounds out of the triangle.
