@@ -13,3 +13,4 @@ New Features:
 Bug Fixes:
 
 -Fixed a bug where Triangle plots could have error bounds out of the triangle.
+-Fixed a bug where /zoom would occasionally not work when specifying 0 as any of the rectangle bounds.
