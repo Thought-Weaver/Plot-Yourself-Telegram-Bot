@@ -66,7 +66,7 @@ class Plot:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0, contour=False):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -134,7 +134,7 @@ class Plot:
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
-        if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
+        if zoom_x_min is not None and zoom_y_min is not None and zoom_x_max is not None and zoom_y_max is not None:
             plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
 
         buffer = BytesIO()
@@ -349,7 +349,7 @@ class BoxedPlot:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0, contour=False):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -417,7 +417,7 @@ class BoxedPlot:
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
-        if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
+        if zoom_x_min is not None and zoom_y_min is not None and zoom_x_max is not None and zoom_y_max is not None:
             plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
 
         if self.__name is not None:
@@ -642,7 +642,7 @@ class AlignmentChart:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0, contour=False):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -712,7 +712,7 @@ class AlignmentChart:
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
-        if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
+        if zoom_x_min is not None and zoom_y_min is not None and zoom_x_max is not None and zoom_y_max is not None:
             plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
 
         if self.__name is not None:
@@ -941,7 +941,7 @@ class TrianglePlot:
 
         return 0, ""
 
-    def generate_plot(self, toggle_labels=True, zoom_x_min=0, zoom_y_min=0, zoom_x_max=0, zoom_y_max=0, contour=False):
+    def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -1005,7 +1005,7 @@ class TrianglePlot:
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
-        if zoom_x_min != 0 and zoom_y_min !=0 and zoom_x_max != 0 and zoom_y_max != 0:
+        if zoom_x_min is not None and zoom_y_min is not None and zoom_x_max is not None and zoom_y_max is not None:
             plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
 
         buffer = BytesIO()
