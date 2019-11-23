@@ -1181,7 +1181,7 @@ class RadarPlot:
             return 1, "That list doesn't match the number of labels."
 
         if len(vals) >= 2:
-            vals = vals[::-1][1:] + vals[::-1][:1]
+            vals = vals[::-1][-1:] + vals[::-1][:-1]
 
         # Fixing this manually until I can devise an elegant solution for
         # letting users input bounds for each label.
