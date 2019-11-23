@@ -13,7 +13,7 @@ from collections import Counter, OrderedDict
 import datetime
 from operator import itemgetter
 
-from plot import Plot, BoxedPlot, AlignmentChart, TrianglePlot
+from plot import Plot, BoxedPlot, AlignmentChart, TrianglePlot, RadarPlot
 
 with open("api_key.txt", 'r') as f:
     TOKEN = f.read().rstrip()
@@ -46,6 +46,7 @@ ARG_PARSER.add_argument("-Mx", "--maxx", type=int)
 ARG_PARSER.add_argument("-my", "--miny", type=int)
 ARG_PARSER.add_argument("-My", "--maxy", type=int)
 ARG_PARSER.add_argument("--custompoints", action="store_true")
+ARG_PARSER.add_argument("-l", "--labels", type=str, action="append")
 
 def send_message(bot, chat_id, text):
     try:
@@ -107,6 +108,10 @@ def create_plot_handler(bot, update, chat_data, args):
         chat_data["plots"] = {}
 
     max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
+
+    if len(args) == 0:
+        send_message(bot, chat_id, "You have created an empty plot (" + str(max_key + 1) + ") successfully!")
+
     plot = Plot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
                 " ".join(plot_args.get("xleft")) if plot_args.get("xleft") is not None else None,
                 " ".join(plot_args.get("xright")) if plot_args.get("xright") is not None else None,
@@ -217,6 +222,10 @@ def plot_me_handler(bot, update, chat_data, args):
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    if isinstance(plot, RadarPlot):
+        send_message(bot, chat_id, "You can't do that on radar plots!")
         return
 
     result = plot.plot_point(username, x, y, err_x=err_x, err_y=err_y)
@@ -402,6 +411,10 @@ def get_plot_stats_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
+    if isinstance(plot, RadarPlot):
+        send_message(bot, chat_id, "You can't do that on radar plots!")
+        return
+
     result = plot.generate_stats()
 
     if result is None:
@@ -441,15 +454,13 @@ def polyfit_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
+    if isinstance(plot, RadarPlot):
+        send_message(bot, chat_id, "You can't do that on radar plots!")
+        return
+
     if deg < 0:
         send_message(bot, chat_id, "Degree must be non-negative!")
         return
-
-    """
-    if type(plot) != Plot:
-        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") is not the right type!")
-        return
-    """
 
     toggle_labels = True if toggle > 0 else False
     result = plot.polyfit(deg, toggle_labels=toggle_labels)
@@ -604,6 +615,10 @@ def boxed_plot_handler(bot, update, chat_data, args):
     ]
 
     max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
+
+    if len(args) == 0:
+        send_message(bot, chat_id, "You have created an empty plot (" + str(max_key + 1) + ") successfully!")
+
     plot = BoxedPlot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
                 horiz,
                 vert,
@@ -719,6 +734,10 @@ def setup_bet_handler(bot, update, chat_data, args):
 
     if chat_data["plots"].get(plot_id) is None:
         send_message(bot, chat_id, "That plot does not exist!")
+        return
+
+    if isinstance(chat_data["plots"], RadarPlot):
+        send_message(bot, chat_id, "You can't do that on radar plots!")
         return
 
     if degree < 0:
@@ -902,6 +921,10 @@ def equation_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
+    if isinstance(plot, RadarPlot):
+        send_message(bot, chat_id, "You can't do that on radar plots!")
+        return
+
     if deg < 0:
         send_message(bot, chat_id, "Degree must be non-negative!")
         return
@@ -1052,6 +1075,10 @@ def alignment_chart_handler(bot, update, chat_data, args):
     ]
 
     max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
+
+    if len(args) == 0:
+        send_message(bot, chat_id, "You have created an empty plot (" + str(max_key + 1) + ") successfully!")
+
     plot = AlignmentChart(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
                 labels,
                 (username, user.id),
@@ -1359,6 +1386,10 @@ def triangle_plot_handler(bot, update, chat_data, args):
         chat_data["plots"] = {}
 
     max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
+
+    if len(args) == 0:
+        send_message(bot, chat_id, "You have created an empty plot (" + str(max_key + 1) + ") successfully!")
+
     plot = TrianglePlot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
                 " ".join(plot_args.get("xleft")) if plot_args.get("xleft") is not None else None,
                 " ".join(plot_args.get("xright")) if plot_args.get("xright") is not None else None,
@@ -1402,6 +1433,10 @@ def zoom_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
+    if isinstance(plot, RadarPlot):
+        send_message(bot, chat_id, "You can't do that on radar plots!")
+        return
+
     result = plot.generate_plot(zoom_x_min=min_x, zoom_y_min=min_y, zoom_x_max=max_x, zoom_y_max=max_y)
 
     if result is None:
@@ -1441,6 +1476,10 @@ def contour_handler(bot, update, chat_data, args):
 
     if plot is None:
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    if isinstance(plot, RadarPlot):
+        send_message(bot, chat_id, "You can't do that on radar plots!")
         return
 
     if len(plot.get_points()) < 2:
@@ -1549,6 +1588,10 @@ def percent_plot_me_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
         return
 
+    if isinstance(plot, RadarPlot):
+        send_message(bot, chat_id, "You can't do that on radar plots!")
+        return
+
     # This check is technically unnecessary since the plot will catch out of bounds points,
     # but it gives the user a slightly more informative error message.
     if percent_x > 100 or percent_x < -100 or percent_y > 100 or percent_y < -100:
@@ -1578,6 +1621,108 @@ def percent_plot_me_handler(bot, update, chat_data, args):
         y = dist_abs_diff * height * percent_y / 100
 
     result = plot.plot_point(username, x, y, err_x=err_x, err_y=err_y)
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        img = plot.generate_plot()
+
+        if img is None:
+            return
+
+        if img[0] == 1:
+            send_message(bot, chat_id, img[1])
+            return
+        elif img[0] == 0:
+            bot.send_photo(chat_id=chat_id, photo=img[1])
+
+        chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+
+
+def radar_plot_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    try:
+        parsed = ARG_PARSER.parse_args(args)
+        plot_args = vars(parsed)
+    except SystemExit:
+        send_message(bot, chat_id, "That is not a valid argument list. See /help.")
+        return
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+
+    max_key = max(chat_data["plots"].keys()) if len(chat_data["plots"].keys()) > 0 else 0
+
+    if len(args) == 0:
+        send_message(bot, chat_id, "You have created an empty plot (" + str(max_key + 1) + ") successfully!")
+
+    plot = RadarPlot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
+                plot_args.get("labels") if plot_args.get("labels") is not None else [""],
+                (username, user.id),
+                max_key + 1)
+    chat_data["plots"][max_key + 1] = plot
+
+    send_message(bot, chat_id, str(" ".join(plot_args.get("title", ""))) +
+                                   " (" + str(max_key + 1) + ") was created successfully!")
+
+    show_plot_handler(bot, update, chat_data, [max_key + 1])
+
+
+def radar_plot_me_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    # Args are: plot_id, values
+    if len(args) < 2:
+        send_message(bot, chat_id, "usage: /radarplotme {plot_id} {value1}")
+        return
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
+    try:
+        # Select the most recent (max) key from plots that aren't archived by default.
+        plot_id = int(args[0])
+        values = [float(f) for f in args[1:]]
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID must be an int and the value list must be floats!")
+        return
+
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    result = plot.plot_point(username, values)
 
     if result is None:
         return
@@ -1651,7 +1796,9 @@ if __name__ == "__main__":
     contour_aliases = ["contour", "cont", "ilikerings"]
     my_bet_data_aliases = ["mybetdata", "mbd"]
     bet_history_aliases = ["bethistory", "bh"]
-    percent_plot_me_aliases = ["percentplotme", "ppm", "ratioplotme", "rpm"]
+    percent_plot_me_aliases = ["percentplotme", "ppm"]
+    radar_plot_aliases = ["radarplot", "radp", "ilikecircles"]
+    radar_plot_me_aliases = ["radarplotme", "rpm", "helicoptersir"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1686,7 +1833,9 @@ if __name__ == "__main__":
                 ("contour", 2, contour_aliases),
                 ("my_bet_data", 1, my_bet_data_aliases),
                 ("bet_history", 1, bet_history_aliases),
-                ("percent_plot_me", 2, percent_plot_me_aliases)]
+                ("percent_plot_me", 2, percent_plot_me_aliases),
+                ("radar_plot", 2, radar_plot_aliases),
+                ("radar_plot_me", 2, radar_plot_me_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

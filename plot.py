@@ -115,21 +115,21 @@ class Plot:
                 plt.annotate(labels[i], (X[i], Y[i]))
 
         if self.__xaxisleft is not None and self.__xaxisright is not None:
-            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->")
+            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->", fontsize="medium")
         elif self.__xaxisright is None and self.__xaxisleft is not None:
-            plt.xlabel(str(self.__xaxisleft))
+            plt.xlabel(str(self.__xaxisleft), fontsize="medium")
         elif self.__xaxisleft is None and self.__xaxisright is not None:
-            plt.xlabel(str(self.__xaxisright))
+            plt.xlabel(str(self.__xaxisright), fontsize="medium")
 
         if self.__yaxistop is not None and self.__yaxisbottom is not None:
-            plt.ylabel("<-- " + str(self.__yaxisbottom) + " || " + str(self.__yaxistop) + " -->")
+            plt.ylabel("<-- " + str(self.__yaxisbottom) + " || " + str(self.__yaxistop) + " -->", fontsize="medium")
         elif self.__yaxisbottom is None and self.__yaxistop is not None:
-            plt.ylabel(str(self.__yaxistop))
+            plt.ylabel(str(self.__yaxistop), fontsize="medium")
         elif self.__yaxistop is None and self.__yaxisbottom is not None:
-            plt.ylabel(str(self.__yaxisbottom))
+            plt.ylabel(str(self.__yaxisbottom), fontsize="medium")
 
         if self.__name is not None:
-            plt.title(str(self.__name))
+            plt.title(str(self.__name), fontsize="large")
         plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
 
         plt.xlim(left=self.__minx, right=self.__maxx)
@@ -165,21 +165,21 @@ class Plot:
                 plt.annotate(labels[i], (X[i], Y[i]))
 
         if self.__xaxisleft is not None and self.__xaxisright is not None:
-            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->")
+            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->", fontsize="medium")
         elif self.__xaxisright is None and self.__xaxisleft is not None:
-            plt.xlabel(str(self.__xaxisleft))
+            plt.xlabel(str(self.__xaxisleft), fontsize="medium")
         elif self.__xaxisleft is None and self.__xaxisright is not None:
-            plt.xlabel(str(self.__xaxisright))
+            plt.xlabel(str(self.__xaxisright), fontsize="medium")
 
         if self.__yaxistop is not None and self.__yaxisbottom is not None:
-            plt.ylabel("<-- " + str(self.__yaxisbottom) + " || " + str(self.__yaxistop) + " -->")
+            plt.ylabel("<-- " + str(self.__yaxisbottom) + " || " + str(self.__yaxistop) + " -->", fontsize="medium")
         elif self.__yaxisbottom is None and self.__yaxistop is not None:
-            plt.ylabel(str(self.__yaxistop))
+            plt.ylabel(str(self.__yaxistop), fontsize="medium")
         elif self.__yaxistop is None and self.__yaxisbottom is not None:
-            plt.ylabel(str(self.__yaxisbottom))
+            plt.ylabel(str(self.__yaxisbottom), fontsize="medium")
 
         if self.__name is not None:
-            plt.title(str(self.__name))
+            plt.title(str(self.__name), fontsize="large")
         plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
 
         p = np.polynomial.polynomial.polyfit(X, Y, deg)
@@ -412,8 +412,8 @@ class BoxedPlot:
                 y_axis_title += v + " || "
         y_axis_title = y_axis_title[:-4]
 
-        plt.xlabel(x_axis_title)
-        plt.ylabel(y_axis_title)
+        plt.xlabel(x_axis_title, fontsize="medium")
+        plt.ylabel(y_axis_title, fontsize="medium")
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
@@ -421,8 +421,8 @@ class BoxedPlot:
             plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
 
         if self.__name is not None:
-            plt.title(str(self.__name))
-        plt.suptitle("ID: (" + str(self.__id) + ")")
+            plt.title(str(self.__name), fontsize="large")
+        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -473,15 +473,15 @@ class BoxedPlot:
                 y_axis_title += v + " || "
         y_axis_title = y_axis_title[:-4]
 
-        plt.xlabel(x_axis_title)
-        plt.ylabel(y_axis_title)
+        plt.xlabel(x_axis_title, fontsize="medium")
+        plt.ylabel(y_axis_title, fontsize="medium")
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
 
         if self.__name is not None:
-            plt.title(str(self.__name))
-        plt.suptitle("ID: (" + str(self.__id) + ")")
+            plt.title(str(self.__name), fontsize="large")
+        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
 
         p = np.polynomial.polynomial.polyfit(X, Y, deg)
         f = np.poly1d(p[::-1])
@@ -697,8 +697,8 @@ class AlignmentChart:
             for i in range(len(X)):
                 plt.annotate(labels[i], (X[i], Y[i]))
 
-        plt.xlabel("Lawful || Neutral || Chaotic")
-        plt.ylabel("Evil || Neutral || Good")
+        plt.xlabel("Lawful || Neutral || Chaotic", fontsize="medium")
+        plt.ylabel("Evil || Neutral || Good", fontsize="medium")
 
         plt.text(-9.8, 9.2, self.__labels[0], fontsize=10)
         plt.text(-3.2, 9.2, self.__labels[1], fontsize=10)
@@ -716,7 +716,7 @@ class AlignmentChart:
             plt.axis([zoom_x_min, zoom_x_max, zoom_y_min, zoom_y_max])
 
         if self.__name is not None:
-            plt.title(str(self.__name))
+            plt.title(str(self.__name), fontsize="large")
         plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
 
         buffer = BytesIO()
@@ -759,8 +759,8 @@ class AlignmentChart:
             for i in range(len(X)):
                 plt.annotate(labels[i], (X[i], Y[i]))
 
-        plt.xlabel("Lawful || Neutral || Chaotic")
-        plt.ylabel("Evil || Neutral || Good")
+        plt.xlabel("Lawful || Neutral || Chaotic", fontsize="medium")
+        plt.ylabel("Evil || Neutral || Good", fontsize="medium")
 
         plt.text(-9.8, 9.2, self.__labels[0], fontsize=10)
         plt.text(-3.2, 9.2, self.__labels[1], fontsize=10)
@@ -776,7 +776,7 @@ class AlignmentChart:
         plt.ylim(bottom=self.__miny, top=self.__maxy)
 
         if self.__name is not None:
-            plt.title(str(self.__name))
+            plt.title(str(self.__name), fontsize="large")
         plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
 
         p = np.polynomial.polynomial.polyfit(X, Y, deg)
@@ -989,19 +989,19 @@ class TrianglePlot:
                 plt.annotate(labels[i], (X[i], Y[i]))
 
         if self.__xaxisleft is not None and self.__xaxisright is not None:
-            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->")
+            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->", fontsize="medium")
         elif self.__xaxisright is None and self.__xaxisleft is not None:
-            plt.xlabel(str(self.__xaxisleft))
+            plt.xlabel(str(self.__xaxisleft), fontsize="medium")
         elif self.__xaxisleft is None and self.__xaxisright is not None:
-            plt.xlabel(str(self.__xaxisright))
+            plt.xlabel(str(self.__xaxisright), fontsize="medium")
 
         if self.__yaxistop is not None:
-            plt.title(str(self.__yaxistop))
+            plt.title(str(self.__yaxistop), fontsize="medium")
 
         if self.__name is not None:
-            plt.ylabel(str("ID: (" + str(self.__id) + ")\n" + self.__name))
+            plt.ylabel(str("ID: (" + str(self.__id) + ")\n" + self.__name), fontsize="large")
         else:
-            plt.ylabel("ID: (" + str(self.__id) + ")")
+            plt.ylabel("ID: (" + str(self.__id) + ")", fontsize="large")
 
         plt.xlim(left=self.__minx, right=self.__maxx)
         plt.ylim(bottom=self.__miny, top=self.__maxy)
@@ -1036,19 +1036,19 @@ class TrianglePlot:
                 plt.annotate(labels[i], (X[i], Y[i]))
 
         if self.__xaxisleft is not None and self.__xaxisright is not None:
-            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->")
+            plt.xlabel("<-- " + str(self.__xaxisleft) + " || " + str(self.__xaxisright) + " -->", fontsize="medium")
         elif self.__xaxisright is None and self.__xaxisleft is not None:
-            plt.xlabel(str(self.__xaxisleft))
+            plt.xlabel(str(self.__xaxisleft), fontsize="medium")
         elif self.__xaxisleft is None and self.__xaxisright is not None:
-            plt.xlabel(str(self.__xaxisright))
+            plt.xlabel(str(self.__xaxisright), fontsize="medium")
 
         if self.__yaxistop is not None:
-            plt.title(str(self.__yaxistop))
+            plt.title(str(self.__yaxistop), fontsize="medium")
 
         if self.__name is not None:
-            plt.ylabel("ID: (" + str(self.__id) + ")\n" + str(self.__name))
+            plt.ylabel("ID: (" + str(self.__id) + ")\n" + str(self.__name), fontsize="large")
         else:
-            plt.ylabel("ID: (" + str(self.__id) + ")")
+            plt.ylabel("ID: (" + str(self.__id) + ")", fontsize="large")
 
         p = np.polynomial.polynomial.polyfit(X, Y, deg)
         f = np.poly1d(p[::-1])
@@ -1146,6 +1146,104 @@ class TrianglePlot:
 
     def get_if_custom_points(self):
         return self.__custompoints
+
+    def get_points(self):
+        return self.__points
+
+    def get_id(self):
+        return self.__id
+
+    def get_last_modified(self):
+        try:
+            timestamp = self.__last_modified
+            return timestamp
+        except AttributeError:
+            return None
+
+    def set_last_modified(self, timestamp):
+        self.__last_modified = timestamp
+
+    def set_creator(self, username, user_id):
+        self.__createdby = (username, user_id)
+
+
+class RadarPlot:
+    def __init__(self, name, labels, createdby, id):
+        self.__name = name
+        self.__labels = labels
+        self.__points = []
+        self.__createdby = createdby
+        self.__id = id
+        self.__last_modified = None
+
+    def plot_point(self, label, vals):
+        if len(vals) != len(self.__labels):
+            return 1, "That list doesn't match the number of labels."
+
+        for i in range(len(self.__points)):
+            if self.__points[i][0] == label:
+                self.__points[i] = (label, vals)
+                return 0, ""
+
+        self.__points.append((label if label is not None else "", vals))
+
+        return 0, ""
+
+    def remove_point(self, label):
+        if label not in [t[0] for t in self.__points]:
+            return 1, "Error: You haven't plotted yourself in this plot."
+        self.__points.remove(next(p for p in self.__points if p[0] == label))
+
+        return 0, ""
+
+    def generate_plot(self, toggle_labels=True):
+        point_labels = [p[0] for p in self.__points]
+        vals = [np.concatenate((p[1], [p[1][0]])) for p in self.__points]
+        colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
+                  for color_hash in [ColorHash(label).rgb for label in point_labels]]
+
+        angles = np.linspace(0, 2 * np.pi, len(self.__labels), endpoint=False)
+        angles = np.concatenate((angles, [angles[0]]))
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, polar=True)
+        for i in range(len(vals)):
+            ax.plot(angles, vals[i], "o-", linewidth=2, color=colors[i])
+            ax.fill(angles, vals[i], alpha=0.25, color=colors[i])
+        ax.set_thetagrids(angles * 180 / np.pi, self.__labels)
+        ax.set_title(self.__name)
+        ax.grid(True)
+
+        if toggle_labels:
+            ax.legend(point_labels, loc=(0.9, .95), labelspacing=0.1, fontsize="small")
+
+        buffer = BytesIO()
+        fig.savefig(buffer, format="png")
+        buffer.seek(0)
+
+        # bot.send_photo(chat_id=chat_id, photo=buffer)
+        # This returns the image itself that can then be sent.
+        return 0, buffer
+
+    def lookup_label(self, label):
+        for p in self.__points:
+            if p[0] == label:
+                return 0, (p[1], p[2])
+        return 1, "Name not found on that plot."
+
+    def edit_plot(self, plot_args):
+        self.__name = " ".join(plot_args.get("title")) if plot_args.get("title") is not None else self.__name
+        self.__labels = " ".join(plot_args.get("labels")) if plot_args.get("labels") is not None else self.__labels
+        self.__custompoints = plot_args.get("custompoints") if plot_args.get("custompoints") is not None else self.__custompoints
+
+    def get_name(self):
+        return self.__name
+
+    def get_labels(self):
+        return self.__labels
+
+    def get_creator(self):
+        return self.__createdby
 
     def get_points(self):
         return self.__points

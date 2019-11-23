@@ -1,16 +1,13 @@
-Patch Notes (11/18/2019):
+Patch Notes (11/23/2019):
 
 New Features:
 
--Added /percentplotme to percent yourself at a certain percent of a plot's bounds.
--Added sorting options to /currentbet {optional sortby}.
-    * 0 or less sorts it by input time.
-    * 1 sorts it by name.
-    * 2 sorts it by R^2 value.
--Rearranged the y-axis label and title on Triangle plots to be more logical.
--Added /kevinmemorial.
+-Added /radarplot for making radar plots.
+    * Radar plots are quite unique. You can enter as many labels as you want:
+    * /radp -t Title -l label1 -l label2 -l label3 ...
+-Radar plots require you to use /rpm instead of /pm and cannot determine the last plot automatically.
+-Normalized axis label and title sizes.
 
 Bug Fixes:
 
--Fixed a bug where Triangle plots could have error bounds out of the triangle.
--Fixed a bug where /zoom would occasionally not work when specifying 0 as any of the rectangle bounds.
+-Fixed message when creating an empty plot.
