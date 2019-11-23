@@ -1180,6 +1180,9 @@ class RadarPlot:
         if len(vals) != len(self.__labels):
             return 1, "That list doesn't match the number of labels."
 
+        if len(vals) >= 2:
+            vals = vals[::-1][1:] + vals[::-1][:1]
+
         # Fixing this manually until I can devise an elegant solution for
         # letting users input bounds for each label.
         for v in vals:
@@ -1188,10 +1191,10 @@ class RadarPlot:
 
         for i in range(len(self.__points)):
             if self.__points[i][0] == label:
-                self.__points[i] = (label, vals[::-1])
+                self.__points[i] = (label, vals)
                 return 0, ""
 
-        self.__points.append((label if label is not None else "", vals[::-1]))
+        self.__points.append((label if label is not None else "", vals))
 
         return 0, ""
 
@@ -1221,7 +1224,7 @@ class RadarPlot:
         ax.grid(True)
 
         if toggle_labels:
-            ax.legend(point_labels, loc=(0.9, 0), labelspacing=0.1, fontsize="small")
+            ax.legend(point_labels, loc=(1.5, 0), labelspacing=0.1, fontsize="small")
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
@@ -1234,7 +1237,7 @@ class RadarPlot:
     def lookup_label(self, label):
         for p in self.__points:
             if p[0] == label:
-                return 0, (p[1], p[2])
+                return 0, p[1]
         return 1, "Name not found on that plot."
 
     def edit_plot(self, plot_args):
