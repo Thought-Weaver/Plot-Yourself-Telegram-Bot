@@ -6,8 +6,13 @@ New Features:
     * Radar plots are quite unique. You can enter as many labels as you want:
     * /radp -t Title -l label1 -l label2 -l label3 ...
 -Radar plots require you to use /rpm instead of /pm and cannot determine the last plot automatically.
+    * /rpm starts left of the numbers and moves clockwise.
 -Normalized axis label and title sizes.
+-/listplots and /fulllistplots are now sent to your DMs! Make sure to DM the bot.
+-Added alerts when using commands requiring DMs, but you haven't DMed the bot.
 
 Bug Fixes:
 
 -Fixed message when creating an empty plot.
+-Fixed /whosplotted and /lookup for Radar Plots.
+-Repositioned Radar Plot legend to avoid cutoff.

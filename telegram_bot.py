@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import telegram
 from telegram.ext import Updater, CommandHandler, PicklePersistence
-from telegram.error import TelegramError
+from telegram.error import TelegramError, Unauthorized
 import logging
 
 import os
@@ -356,6 +356,7 @@ def show_plot_handler(bot, update, chat_data, args):
 
 def list_plots_handler(bot, update, chat_data):
     chat_id = update.message.chat.id
+    user_id = update.message.from_user.id
 
     if chat_data.get("plots") is None:
         chat_data["plots"] = {}
@@ -370,11 +371,16 @@ def list_plots_handler(bot, update, chat_data):
     for (key, value) in cur_plots.items():
         if isinstance(key, int):
             text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
-    send_message(bot, chat_id, text)
+
+    try:
+        send_message(bot, user_id, text)
+    except Unauthorized as u:
+        send_message(bot, chat_id, "You haven't sent a DM to the bot and thus cannot receive DMs!")
 
 
 def full_list_plots_handler(bot, update, chat_data):
     chat_id = update.message.chat.id
+    user_id = update.message.from_user.id
 
     if chat_data.get("plots") is None:
         chat_data["plots"] = {}
@@ -383,7 +389,11 @@ def full_list_plots_handler(bot, update, chat_data):
     for (key, value) in OrderedDict(sorted(chat_data["plots"].items())).items():
         if isinstance(key, int):
             text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
-    send_message(bot, chat_id, text)
+
+    try:
+        send_message(bot, user_id, text)
+    except Unauthorized as u:
+        send_message(bot, chat_id, "You haven't sent a DM to the bot and thus cannot receive DMs!")
 
 
 def get_plot_stats_handler(bot, update, chat_data, args):
@@ -668,8 +678,8 @@ def lookup_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, result[1])
         return
     elif result[0] == 0:
-        (x, y) = result[1]
-        send_message(bot, chat_id, name + " exists at (" + str(x) + ", " + str(y) + ").")
+        vals_str = ", ".join([str(x) for x in result[1]])
+        send_message(bot, chat_id, name + " exists at (" + vals_str + ").")
         return
 
 
@@ -1232,7 +1242,11 @@ def my_plots_handler(bot, update, chat_data):
             elif not isinstance(creator, tuple) and str(creator) == str(username):
                 text += "(" + str(key) + "): " + str(value.get_name()) + "\n"
                 value.set_creator(username, user_id)
-    send_message(bot, user_id, text)
+
+    try:
+        send_message(bot, user_id, text)
+    except Unauthorized as u:
+        send_message(bot, chat_id, "You haven't sent a DM to the bot and thus cannot receive DMs!")
 
 
 def archive_all_handler(bot, update, chat_data):
@@ -1358,7 +1372,11 @@ def whos_plotted_handler(bot, update, chat_data, args):
     points = plot.get_points()
     text = "Currently plotted on (" + str(plot_id) +  "):\n\n"
     for p in points:
-        text += str(p[0]) + ": (" + str(p[1]) + ", " + str(p[2]) + ")\n"
+        if isinstance(plot, RadarPlot):
+            vals_str = ", ".join([str(x) for x in p[1]])
+            text += str(p[0]) + ": (" + vals_str + ")\n"
+        else:
+            text += str(p[0]) + ": (" + str(p[1]) + ", " + str(p[2]) + ")\n"
     send_message(bot, chat_id, text)
 
 
@@ -1515,7 +1533,11 @@ def my_bet_data_handler(bot, update, chat_data):
            "Total bets: " + str(chat_data["all_user_bet_data"][user_id].get("total_bets")) + "\n" +  \
            "Average Difference: " + str(chat_data["all_user_bet_data"][user_id].get("avg_diff")) + "\n" +  \
            "Winning Average Difference: " + str(chat_data["all_user_bet_data"][user_id].get("win_avg_diff"))
-    send_message(bot, user_id, text)
+
+    try:
+        send_message(bot, user_id, text)
+    except Unauthorized as u:
+        send_message(bot, chat_id, "You haven't sent a DM to the bot and thus cannot receive DMs!")
 
 
 def bet_history_handler(bot, update, chat_data):
@@ -1541,7 +1563,11 @@ def bet_history_handler(bot, update, chat_data):
         text += "\n---\n\n"
 
         # Send and reset.
-        send_message(bot, user_id, text)
+        try:
+            send_message(bot, user_id, text)
+        except Unauthorized as u:
+            send_message(bot, chat_id, "You haven't sent a DM to the bot and thus cannot receive DMs!")
+            break
         text = ""
 
 
