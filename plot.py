@@ -1224,7 +1224,7 @@ class RadarPlot:
         ax.grid(True)
 
         if toggle_labels:
-            ax.legend(point_labels, loc=(0.95, 0), labelspacing=0.1, fontsize="small")
+            ax.legend(point_labels, loc=(0.95, -0.15), labelspacing=0.1, fontsize="small")
 
         buffer = BytesIO()
         fig.savefig(buffer, format="png")
