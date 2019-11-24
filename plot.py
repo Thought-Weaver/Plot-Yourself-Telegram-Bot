@@ -1220,7 +1220,9 @@ class RadarPlot:
             ax.plot(angles, vals[i], "o-", linewidth=2, color=colors[i])
             ax.fill(angles, vals[i], alpha=0.25, color=colors[i])
         ax.set_thetagrids(angles * 180 / np.pi, self.__labels)
-        ax.set_title(self.__name)
+        if self.__name is not None:
+            plt.title(str(self.__name), fontsize="large")
+        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
         ax.grid(True)
 
         if toggle_labels:
