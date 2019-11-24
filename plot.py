@@ -1222,7 +1222,7 @@ class RadarPlot:
         ax.set_thetagrids(angles * 180 / np.pi, self.__labels)
         if self.__name is not None:
             plt.title(str(self.__name), fontsize="large")
-        plt.suptitle("ID: (" + str(self.__id) + ")", fontsize=8)
+        plt.suptitle("ID: (" + str(self.__id) + ")\n", fontsize=8)
         ax.grid(True)
 
         if toggle_labels:
@@ -1239,6 +1239,8 @@ class RadarPlot:
     def lookup_label(self, label):
         for p in self.__points:
             if p[0] == label:
+                if len(p[1]) >= 2:
+                    return 0, p[1][::-1][-1:] + p[1][::-1][:-1]
                 return 0, p[1]
         return 1, "Name not found on that plot."
 

@@ -532,7 +532,7 @@ def custom_point_handler(bot, update, chat_data, args):
             username += user.last_name
 
     # Args are: plot_id, x, y, label
-    if len(args) != 4:
+    if len(args) < 4:
         send_message(bot, chat_id, "usage: /custompoint {plot_id} {x} {y} {label}")
         return
 
@@ -540,7 +540,7 @@ def custom_point_handler(bot, update, chat_data, args):
         plot_id = int(args[0])
         x = float(args[1])
         y = float(args[2])
-        label = str(args[3])
+        label = " ".join(args[3:])
     except ValueError:
         send_message(bot, chat_id, "Plot ID must be an int and x, y must be floats.")
         return
@@ -647,13 +647,13 @@ def lookup_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
 
     # Args are: plot_id, name (assume no spaces, will set lowercase)
-    if len(args) != 2:
-        send_message(bot, chat_id, "usage: /custompoint {plot_id} {name (remove spaces)}")
+    if len(args) < 2:
+        send_message(bot, chat_id, "usage: /lookup {plot_id} {name}")
         return
 
     try:
         plot_id = int(args[0])
-        name = str(args[1])
+        name = " ".join(args[1:])
     except ValueError:
         send_message(bot, chat_id, "Plot ID must be an int and name must be a string.")
         return
@@ -1373,7 +1373,10 @@ def whos_plotted_handler(bot, update, chat_data, args):
     text = "Currently plotted on (" + str(plot_id) +  "):\n\n"
     for p in points:
         if isinstance(plot, RadarPlot):
-            vals_str = ", ".join([str(x) for x in p[1]])
+            if len(p[1]) >= 2:
+                vals_str = ", ".join([str(x) for x in p[1][::-1][-1:] + p[1][::-1][:-1]])
+            else:
+                vals_str = ", ".join([str(x) for x in p[1]])
             text += str(p[0]) + ": (" + vals_str + ")\n"
         else:
             text += str(p[0]) + ": (" + str(p[1]) + ", " + str(p[2]) + ")\n"
