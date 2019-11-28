@@ -1,18 +1,18 @@
-Patch Notes (11/23/2019):
+Patch Notes (11/27/2019):
 
 New Features:
 
--Added /radarplot for making radar plots.
-    * Radar plots are quite unique. You can enter as many labels as you want:
-    * /radp -t Title -l label1 -l label2 -l label3 ...
--Radar plots require you to use /rpm instead of /pm and cannot determine the last plot automatically.
-    * /rpm starts right of the numbers and moves clockwise.
--Normalized axis label and title sizes.
--/listplots and /fulllistplots are now sent to your DMs! Make sure to DM the bot.
--Added alerts when using commands requiring DMs, but you haven't DMed the bot.
+-Toggling off labels for /showplot for Radar Plots now displays a GIF of each person on the plot.
+    * To use this, just do /showplot [ID] 0
+-Changed /radarplotme to /plotmeradar to be consistent. The simple alias is now /pmr.
+-Added /plotcrowdsource and /crowdsourceconsent for crowdsource plotting.
+    * You have to give your consent to be crowdsourced on each plot: /cc [plot_id]
+    * You must then plot yourself as an initial point somewhere on the plot.
+    * Others can then /pc [plot_id] [name] [values] to contribute!
+    * Note: For now, remove any spaces from the name.
+    * You can remove your consent by using /cc [plot_id] again.
 
 Bug Fixes:
 
--Fixed message when creating an empty plot.
--Fixed /whosplotted and /lookup for Radar Plots.
--Repositioned Radar Plot legend to avoid cutoff.
+-Fixed a bug where Radar Plot labels couldn't have spaces.
+-Fixed a bug where /pmr broke entirely.

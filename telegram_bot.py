@@ -46,7 +46,7 @@ ARG_PARSER.add_argument("-Mx", "--maxx", type=int)
 ARG_PARSER.add_argument("-my", "--miny", type=int)
 ARG_PARSER.add_argument("-My", "--maxy", type=int)
 ARG_PARSER.add_argument("--custompoints", action="store_true")
-ARG_PARSER.add_argument("-l", "--labels", type=str, action="append")
+ARG_PARSER.add_argument("-l", "--labels", type=str, action="append", nargs='*')
 
 def send_message(bot, chat_id, text):
     try:
@@ -351,6 +351,9 @@ def show_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, result[1])
         return
     elif result[0] == 0:
+        if not toggle_labels and isinstance(plot, RadarPlot):
+            bot.send_animation(chat_id=chat_id, animation=result[1])
+            return
         bot.send_photo(chat_id=chat_id, photo=result[1])
 
 
@@ -1727,7 +1730,7 @@ def radar_plot_me_handler(bot, update, chat_data, args):
 
     # Args are: plot_id, values
     if len(args) < 2:
-        send_message(bot, chat_id, "usage: /radarplotme {plot_id} {value1}")
+        send_message(bot, chat_id, "usage: /plotmeradar {plot_id} {value1} ...")
         return
 
     if chat_data.get("archived") is None:
@@ -1772,6 +1775,121 @@ def radar_plot_me_handler(bot, update, chat_data, args):
             bot.send_photo(chat_id=chat_id, photo=img[1])
 
         chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+
+
+def plot_crowdsource_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    # Must have x, y values at least.
+    if len(args) < 4:
+        send_message(bot, chat_id, "usage: /plotme {plot_id} {label} {vals}")
+        return
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
+    try:
+        # Select the most recent (max) key from plots that aren't archived by default.
+        plot_id = int(args[0])
+        label = str(args[1])
+        vals = [float(f) for f in args[2:]]
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID must be an int, label must be a string, and vals must be floats!")
+        return
+
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    if isinstance(plot, RadarPlot):
+        result = plot.add_crowdsource_point(user.id, username, vals)
+    else:
+        if len(vals) == 2:
+            result = plot.add_crowdsource_point(user.id, username, vals[0], vals[1])
+        else:
+            send_message(bot, chat_id, "You need to specify both an x and y coordinate.")
+
+    if result is None:
+        return
+
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+        return
+    elif result[0] == 0:
+        img = plot.generate_plot()
+
+        if img is None:
+            return
+
+        if img[0] == 1:
+            send_message(bot, chat_id, img[1])
+            return
+        elif img[0] == 0:
+            bot.send_photo(chat_id=chat_id, photo=img[1])
+
+        chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+
+
+def crowdsource_consent_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    if len(args) > 1:
+        send_message(bot, chat_id, "usage: /crowdsourceconsent {optional plot_id}")
+        return
+
+    if chat_data.get("archived") is None:
+        chat_data["archived"] = {}
+
+    try:
+        # Select the most recent (max) key from plots that aren't archived by default.
+        plot_id = int(args[0]) if len(args) == 1 else int(max({k:v for k, v in chat_data["plots"].items()
+                                                               if k not in chat_data["archived"]}.keys()))
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID must be an int!")
+        return
+
+    if chat_data.get("plots") is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    result = plot.add_crowdsource_consent(user.id, username)
+
+    if result is None:
+        return
+
+    send_message(bot, chat_id, result[1])
 
 
 def handle_error(bot, update, error):
@@ -1827,7 +1945,9 @@ if __name__ == "__main__":
     bet_history_aliases = ["bethistory", "bh"]
     percent_plot_me_aliases = ["percentplotme", "ppm"]
     radar_plot_aliases = ["radarplot", "radp", "ilikecircles"]
-    radar_plot_me_aliases = ["radarplotme", "rpm", "helicoptersir"]
+    radar_plot_me_aliases = ["plotmeradar", "pmr", "helicoptersir"]
+    plot_crowdsource_aliases = ["plotcrowdsource", "pc"]
+    crowdsource_consent_aliases = ["crowdsourceconsent", "cc"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1864,7 +1984,9 @@ if __name__ == "__main__":
                 ("bet_history", 1, bet_history_aliases),
                 ("percent_plot_me", 2, percent_plot_me_aliases),
                 ("radar_plot", 2, radar_plot_aliases),
-                ("radar_plot_me", 2, radar_plot_me_aliases)]
+                ("radar_plot_me", 2, radar_plot_me_aliases),
+                ("plot_crowdsource", 2, plot_crowdsource_aliases),
+                ("crowdsource_consent", 2, crowdsource_consent_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

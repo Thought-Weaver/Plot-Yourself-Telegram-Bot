@@ -2,8 +2,12 @@
 #!/usr/bin/env python3
 from __future__ import unicode_literals
 
+import io
+
 from matplotlib import pyplot as plt
 from matplotlib import tri as tri
+from matplotlib.animation import FuncAnimation
+import matplotlib.patches as mpatches
 from colorhash import ColorHash
 from io import BytesIO
 
@@ -31,6 +35,8 @@ class Plot:
         self.__miny = miny
         self.__maxy = maxy
         self.__points = []
+        self.__crowdsourced_points = {}
+        self.__crowdsourceable = []
         self.__createdby = createdby
         self.__custompoints = custompoints
         self.__id = id
@@ -63,10 +69,14 @@ class Plot:
         if label not in [t[0] for t in self.__points]:
             return 1, "Error: You haven't plotted yourself in this plot."
         self.__points.remove(next(p for p in self.__points if p[0] == label))
+        if self.__crowdsourced_points.get(label) is not None:
+            del self.__crowdsourced_points[label]
 
         return 0, ""
 
     def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
+        self.update_points_with_crowdsource()
+
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -302,6 +312,80 @@ class Plot:
     def set_creator(self, username, user_id):
         self.__createdby = (username, user_id)
 
+    def add_crowdsource_point(self, id, label, x, y):
+        # ID is the person plotting, label is the name of the point.
+        if label not in [p[0] for p in self.__points]:
+            return 1, "That person (" + label + ") has not plotted themself on that plot!"
+
+        try:
+            consent = False
+            for (id, consent_label) in self.__crowdsourceable:
+                if label == consent_label:
+                    consent = True
+            if not consent:
+                return 1, "That person (" + label + ") has not consented to being crowdsource plotted!"
+        except AttributeError:
+            self.__crowdsourceable = []
+            return 1, "That person (" + label + ") has not consented to being crowdsource plotted!"
+
+        if not self.__check_bounds(x, y):
+            return 1, "Error: The point cannot be out of bounds!"
+
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+            self.__crowdsourced_points[label][id] = (x, y)
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+            self.__crowdsourced_points[label][id] = (x, y)
+
+    def add_crowdsource_consent(self, id, label):
+        try:
+            if (id, label) in self.__crowdsourceable:
+                return self.remove_crowdsource_consent(id, label)
+            self.__crowdsourceable.append((id, label))
+            return 0, "You have now consented to being crowdsourced for this plot."
+        except AttributeError:
+            self.__crowdsourceable = [(id, label)]
+            return 0, "You have now consented to being crowdsourced for this plot."
+
+    def update_points_with_crowdsource(self):
+        try:
+            for label in self.__crowdsourced_points.keys():
+                x, y = self.lookup_label(label)[1]
+                l = len(self.__crowdsourced_points[label].items()) + 1
+                for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
+                    x += x2
+                    y += y2
+                for i in range(len(self.__points)):
+                    if self.__points[i][0] == label:
+                        self.__points[i] = (label, x / l, y / l, 0, 0)
+        except AttributeError:
+            self.__crowdsourced_points = {}
+
+    def remove_crowdsource_consent(self, id, label):
+        try:
+            self.__crowdsourceable.remove((id, label))
+            return 0, "You have removed your consent for that plot."
+        except AttributeError:
+            self.__crowdsourceable = []
+            return 1, "You cannot remove your consent when you haven't yet given it."
+
+    def remove_crowdsource_point(self, id, label):
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+                return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+            if self.__crowdsourced_points[label].get(id) is None:
+                return 1, "You haven't made a crowdsource contribution for that label yet!"
+            del self.__crowdsourced_points[label][id]
+            return 0, "You have removed your crowdsource point for that plot."
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+
 
 class BoxedPlot:
     # We'll define horiz = [h1, h2, h3], vertical = [v1, v2, v3]
@@ -314,6 +398,8 @@ class BoxedPlot:
         self.__miny = -10
         self.__maxy = 10
         self.__points = []
+        self.__crowdsourced_points = {}
+        self.__crowdsourceable = []
         self.__createdby = createdby
         self.__custompoints = custompoints
         self.__id = id
@@ -346,10 +432,14 @@ class BoxedPlot:
         if label not in [t[0] for t in self.__points]:
             return 1, "Error: You haven't plotted yourself in this plot."
         self.__points.remove(next(p for p in self.__points if p[0] == label))
+        if self.__crowdsourced_points.get(label) is not None:
+            del self.__crowdsourced_points[label]
 
         return 0, ""
 
     def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
+        self.update_points_with_crowdsource()
+
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -595,6 +685,80 @@ class BoxedPlot:
     def set_creator(self, username, user_id):
         self.__createdby = (username, user_id)
 
+    def add_crowdsource_point(self, id, label, x, y):
+        # ID is the person plotting, label is the name of the point.
+        if label not in [p[0] for p in self.__points]:
+            return 1, "That person (" + label + ") has not plotted themself on that plot!"
+
+        try:
+            consent = False
+            for (id, consent_label) in self.__crowdsourceable:
+                if label == consent_label:
+                    consent = True
+            if not consent:
+                return 1, "That person (" + label + ") has not consented to being crowdsource plotted!"
+        except AttributeError:
+            self.__crowdsourceable = []
+            return 1, "That person (" + label + ") has not consented to being crowdsource plotted!"
+
+        if not self.__check_bounds(x, y):
+            return 1, "Error: The point cannot be out of bounds!"
+
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+            self.__crowdsourced_points[label][id] = (x, y)
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+            self.__crowdsourced_points[label][id] = (x, y)
+
+    def add_crowdsource_consent(self, id, label):
+        try:
+            if (id, label) in self.__crowdsourceable:
+                return self.remove_crowdsource_consent(id, label)
+            self.__crowdsourceable.append((id, label))
+            return 0, "You have now consented to being crowdsourced for this plot."
+        except AttributeError:
+            self.__crowdsourceable = [(id, label)]
+            return 0, "You have now consented to being crowdsourced for this plot."
+
+    def update_points_with_crowdsource(self):
+        try:
+            for label in self.__crowdsourced_points.keys():
+                x, y = self.lookup_label(label)
+                l = len(self.__crowdsourced_points[label].items()) + 1
+                for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
+                    x += x2
+                    y += y2
+                for i in range(len(self.__points)):
+                    if self.__points[i][0] == label:
+                        self.__points[i] = (label, x / l, y / l, 0, 0)
+        except AttributeError:
+            self.__crowdsourced_points = {}
+
+    def remove_crowdsource_consent(self, id, label):
+        try:
+            self.__crowdsourceable.remove((id, label))
+            return 0, "You have removed your consent for that plot."
+        except AttributeError:
+            self.__crowdsourceable = []
+            return 1, "You cannot remove your consent when you haven't yet given it."
+
+    def remove_crowdsource_point(self, id, label):
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+                return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+            if self.__crowdsourced_points[label].get(id) is None:
+                return 1, "You haven't made a crowdsource contribution for that label yet!"
+            del self.__crowdsourced_points[label][id]
+            return 0, "You have removed your crowdsource point for that plot."
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+
 
 class AlignmentChart:
     # We'll define labels = [row1col1, row1col2, row1col3, row2col1, ..., row3col3]
@@ -607,6 +771,8 @@ class AlignmentChart:
         self.__miny = -10
         self.__maxy = 10
         self.__points = []
+        self.__crowdsourced_points = {}
+        self.__crowdsourceable = []
         self.__createdby = createdby
         self.__custompoints = custompoints
         self.__id = id
@@ -639,10 +805,14 @@ class AlignmentChart:
         if label not in [t[0] for t in self.__points]:
             return 1, "Error: You haven't plotted yourself in this plot."
         self.__points.remove(next(p for p in self.__points if p[0] == label))
+        if self.__crowdsourced_points.get(label) is not None:
+            del self.__crowdsourced_points[label]
 
         return 0, ""
 
     def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
+        self.update_points_with_crowdsource()
+
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -889,6 +1059,80 @@ class AlignmentChart:
     def set_creator(self, username, user_id):
         self.__createdby = (username, user_id)
 
+    def add_crowdsource_point(self, id, label, x, y):
+        # ID is the person plotting, label is the name of the point.
+        if label not in [p[0] for p in self.__points]:
+            return 1, "That person (" + label + ") has not plotted themself on that plot!"
+
+        try:
+            consent = False
+            for (id, consent_label) in self.__crowdsourceable:
+                if label == consent_label:
+                    consent = True
+            if not consent:
+                return 1, "That person (" + label + ") has not consented to being crowdsource plotted!"
+        except AttributeError:
+            self.__crowdsourceable = []
+            return 1, "That person (" + label + ") has not consented to being crowdsource plotted!"
+
+        if not self.__check_bounds(x, y):
+            return 1, "Error: The point cannot be out of bounds!"
+
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+            self.__crowdsourced_points[label][id] = (x, y)
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+            self.__crowdsourced_points[label][id] = (x, y)
+
+    def add_crowdsource_consent(self, id, label):
+        try:
+            if (id, label) in self.__crowdsourceable:
+                return self.remove_crowdsource_consent(id, label)
+            self.__crowdsourceable.append((id, label))
+            return 0, "You have now consented to being crowdsourced for this plot."
+        except AttributeError:
+            self.__crowdsourceable = [(id, label)]
+            return 0, "You have now consented to being crowdsourced for this plot."
+
+    def update_points_with_crowdsource(self):
+        try:
+            for label in self.__crowdsourced_points.keys():
+                x, y = self.lookup_label(label)
+                l = len(self.__crowdsourced_points[label].items()) + 1
+                for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
+                    x += x2
+                    y += y2
+                for i in range(len(self.__points)):
+                    if self.__points[i][0] == label:
+                        self.__points[i] = (label, x / l, y / l, 0, 0)
+        except AttributeError:
+            self.__crowdsourced_points = {}
+
+    def remove_crowdsource_consent(self, id, label):
+        try:
+            self.__crowdsourceable.remove((id, label))
+            return 0, "You have removed your consent for that plot."
+        except AttributeError:
+            self.__crowdsourceable = []
+            return 1, "You cannot remove your consent when you haven't yet given it."
+
+    def remove_crowdsource_point(self, id, label):
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+                return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+            if self.__crowdsourced_points[label].get(id) is None:
+                return 1, "You haven't made a crowdsource contribution for that label yet!"
+            del self.__crowdsourced_points[label][id]
+            return 0, "You have removed your crowdsource point for that plot."
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+
 
 class TrianglePlot:
     def __init__(self, name, xaxisleft, xaxisright, yaxistop, createdby, id, custompoints=False):
@@ -901,6 +1145,8 @@ class TrianglePlot:
         self.__miny = 0
         self.__maxy = 10
         self.__points = []
+        self.__crowdsourced_points = {}
+        self.__crowdsourceable = []
         self.__createdby = createdby
         self.__custompoints = custompoints
         self.__id = id
@@ -938,10 +1184,14 @@ class TrianglePlot:
         if label not in [t[0] for t in self.__points]:
             return 1, "Error: You haven't plotted yourself in this plot."
         self.__points.remove(next(p for p in self.__points if p[0] == label))
+        if self.__crowdsourced_points.get(label) is not None:
+            del self.__crowdsourced_points[label]
 
         return 0, ""
 
     def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
+        self.update_points_with_crowdsource()
+
         # Quick check that all the points have errors.
         for i in range(len(self.__points)):
             if len(self.__points[i]) != 5:
@@ -1123,9 +1373,6 @@ class TrianglePlot:
     def get_xaxisright(self):
         return self.__xaxisright
 
-    def get_yaxisbottom(self):
-        return self.__yaxisbottom
-
     def get_yaxistop(self):
         return self.__yaxistop
 
@@ -1166,12 +1413,88 @@ class TrianglePlot:
     def set_creator(self, username, user_id):
         self.__createdby = (username, user_id)
 
+    def add_crowdsource_point(self, id, label, x, y):
+        # ID is the person plotting, label is the name of the point.
+        if label not in [p[0] for p in self.__points]:
+            return 1, "That person (" + label + ") has not plotted themself on that plot!"
+
+        try:
+            consent = False
+            for (id, consent_label) in self.__crowdsourceable:
+                if label == consent_label:
+                    consent = True
+            if not consent:
+                return 1, "That person (" + label + ") has not consented to being crowdsource plotted!"
+        except AttributeError:
+            self.__crowdsourceable = []
+            return 1, "That person (" + label + ") has not consented to being crowdsource plotted!"
+
+        if not self.__check_bounds(x, y):
+            return 1, "Error: The point cannot be out of bounds!"
+
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+            self.__crowdsourced_points[label][id] = (x, y)
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+            self.__crowdsourced_points[label][id] = (x, y)
+
+    def add_crowdsource_consent(self, id, label):
+        try:
+            if (id, label) in self.__crowdsourceable:
+                return self.remove_crowdsource_consent(id, label)
+            self.__crowdsourceable.append((id, label))
+            return 0, "You have now consented to being crowdsourced for this plot."
+        except AttributeError:
+            self.__crowdsourceable = [(id, label)]
+            return 0, "You have now consented to being crowdsourced for this plot."
+
+    def update_points_with_crowdsource(self):
+        try:
+            for label in self.__crowdsourced_points.keys():
+                x, y = self.lookup_label(label)
+                l = len(self.__crowdsourced_points[label].items()) + 1
+                for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
+                    x += x2
+                    y += y2
+                for i in range(len(self.__points)):
+                    if self.__points[i][0] == label:
+                        self.__points[i] = (label, x / l, y / l, 0, 0)
+        except AttributeError:
+            self.__crowdsourced_points = {}
+
+    def remove_crowdsource_consent(self, id, label):
+        try:
+            self.__crowdsourceable.remove((id, label))
+            return 0, "You have removed your consent for that plot."
+        except AttributeError:
+            self.__crowdsourceable = []
+            return 1, "You cannot remove your consent when you haven't yet given it."
+
+    def remove_crowdsource_point(self, id, label):
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+                return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+            if self.__crowdsourced_points[label].get(id) is None:
+                return 1, "You haven't made a crowdsource contribution for that label yet!"
+            del self.__crowdsourced_points[label][id]
+            return 0, "You have removed your crowdsource point for that plot."
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+
 
 class RadarPlot:
     def __init__(self, name, labels, createdby, id):
         self.__name = name
-        self.__labels = labels
+        self.__labels = [" ".join(l) for l in labels]
         self.__points = []
+        self.__crowdsourced_points = {}
+        self.__crowdsourceable = []
         self.__createdby = createdby
         self.__id = id
         self.__last_modified = None
@@ -1186,8 +1509,8 @@ class RadarPlot:
         # Fixing this manually until I can devise an elegant solution for
         # letting users input bounds for each label.
         for v in vals:
-            if abs(v) > 10:
-                return 1, "All points must be within the bounds [-10, 10]!"
+            if v > 10 or v < 0:
+                return 1, "All points must be within the bounds [0, 10]!"
 
         for i in range(len(self.__points)):
             if self.__points[i][0] == label:
@@ -1202,10 +1525,14 @@ class RadarPlot:
         if label not in [t[0] for t in self.__points]:
             return 1, "Error: You haven't plotted yourself in this plot."
         self.__points.remove(next(p for p in self.__points if p[0] == label))
+        if self.__crowdsourced_points.get(label) is not None:
+            del self.__crowdsourced_points[label]
 
         return 0, ""
 
     def generate_plot(self, toggle_labels=True):
+        self.update_points_with_crowdsource()
+
         point_labels = [p[0] for p in self.__points]
         vals = [np.concatenate((p[1], [p[1][0]])) for p in self.__points]
         colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
@@ -1216,14 +1543,40 @@ class RadarPlot:
 
         fig = plt.figure()
         ax = fig.add_subplot(111, polar=True)
-        for i in range(len(vals)):
-            ax.plot(angles, vals[i], "o-", linewidth=2, color=colors[i])
-            ax.fill(angles, vals[i], alpha=0.25, color=colors[i])
         ax.set_thetagrids(angles * 180 / np.pi, self.__labels)
         if self.__name is not None:
             plt.title(str(self.__name), fontsize="large")
         plt.suptitle("ID: (" + str(self.__id) + ")\n", fontsize=8)
+        ax.set_rlim(bottom=0, top=10)
         ax.grid(True)
+
+        def anim_updater(i):
+            plt.clf()
+            ax = fig.add_subplot(111, polar=True)
+            ax.set_thetagrids(angles * 180 / np.pi, self.__labels)
+            if self.__name is not None:
+                plt.title(str(self.__name), fontsize="large")
+            plt.suptitle("ID: (" + str(self.__id) + ")\n", fontsize=8)
+            ax.grid(True)
+            ax.plot(angles, vals[i], "o-", linewidth=2, color=colors[i])
+            ax.fill(angles, vals[i], alpha=0.25, color=colors[i])
+            ax.set_rlim(bottom=0, top=10)
+            ax.legend(handles=[mpatches.Patch(color=colors[i],
+                                             label=point_labels[i])],
+                      loc=(0.95, -0.1),
+                      labelspacing=0.1,
+                      fontsize="small")
+
+        if not toggle_labels:
+            anim = FuncAnimation(fig, anim_updater, frames=len(point_labels), interval=1000)
+            anim.save("current_anim.gif", writer="imagemagick", dpi=90)
+            file = io.open("current_anim.gif", "rb", buffering=1)
+            file.seek(0)
+            return 0, file
+
+        for i in range(len(vals)):
+            ax.plot(angles, vals[i], "o-", linewidth=2, color=colors[i])
+            ax.fill(angles, vals[i], alpha=0.25, color=colors[i])
 
         if toggle_labels:
             ax.legend(point_labels, loc=(0.95, -0.1), labelspacing=0.1, fontsize="small")
@@ -1276,3 +1629,80 @@ class RadarPlot:
 
     def set_creator(self, username, user_id):
         self.__createdby = (username, user_id)
+
+    def add_crowdsource_point(self, id, label, vals):
+        # ID is the person plotting, label is the name of the point.
+        if label not in [p[0] for p in self.__points]:
+            return 1, "That person (" + label + ") has not plotted themself on that plot!"
+
+        try:
+            consent = False
+            for (id, consent_label) in self.__crowdsourceable:
+                if label == consent_label:
+                    consent = True
+            if not consent:
+                return 1, "That person (" + label + ") has not consented to being crowdsource plotted!"
+        except AttributeError:
+            self.__crowdsourceable = []
+            return 1, "That person (" + label + ") has not consented to being crowdsource plotted!"
+
+        for v in vals:
+            if v > 10 or v < 0:
+                return 1, "All points must be within the bounds [0, 10]!"
+
+        if len(vals) >= 2:
+            vals = vals[::-1][-1:] + vals[::-1][:-1]
+
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+            self.__crowdsourced_points[label][id] = vals
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+            self.__crowdsourced_points[label][id] = vals
+
+    def add_crowdsource_consent(self, id, label):
+        try:
+            if (id, label) in self.__crowdsourceable:
+                return self.remove_crowdsource_consent(id, label)
+            self.__crowdsourceable.append((id, label))
+            return 0, "You have now consented to being crowdsourced for this plot."
+        except AttributeError:
+            self.__crowdsourceable = [(id, label)]
+            return 0, "You have now consented to being crowdsourced for this plot."
+
+    def update_points_with_crowdsource(self):
+        try:
+            for label in self.__crowdsourced_points.keys():
+                vals = self.lookup_label(label)[1]
+                for (id, vals2) in self.__crowdsourced_points[label].items():
+                    vals = [sum(x) for x in zip(vals, vals2)]
+                vals = [v / (len(self.__crowdsourced_points[label].items()) + 1) for v in vals]
+                for i in range(len(self.__points)):
+                    if self.__points[i][0] == label:
+                        self.__points[i] = (label, vals)
+        except AttributeError:
+            self.__crowdsourced_points = {}
+
+    def remove_crowdsource_consent(self, id, label):
+        try:
+            self.__crowdsourceable.remove((id, label))
+            return 0, "You have removed your consent for that plot."
+        except AttributeError:
+            self.__crowdsourceable = []
+            return 1, "You cannot remove your consent when you haven't yet given it."
+
+    def remove_crowdsource_point(self, id, label):
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                self.__crowdsourced_points[label] = {}
+                return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+            if self.__crowdsourced_points[label].get(id) is None:
+                return 1, "You haven't made a crowdsource contribution for that label yet!"
+            del self.__crowdsourced_points[label][id]
+            return 0, "You have removed your crowdsource point for that plot."
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
