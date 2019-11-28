@@ -728,7 +728,7 @@ class BoxedPlot:
     def update_points_with_crowdsource(self):
         try:
             for label in self.__crowdsourced_points.keys():
-                x, y = self.lookup_label(label)
+                x, y = self.lookup_label(label)[1]
                 l = len(self.__crowdsourced_points[label].items()) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
@@ -1103,7 +1103,7 @@ class AlignmentChart:
     def update_points_with_crowdsource(self):
         try:
             for label in self.__crowdsourced_points.keys():
-                x, y = self.lookup_label(label)
+                x, y = self.lookup_label(label)[1]
                 l = len(self.__crowdsourced_points[label].items()) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
@@ -1458,7 +1458,7 @@ class TrianglePlot:
     def update_points_with_crowdsource(self):
         try:
             for label in self.__crowdsourced_points.keys():
-                x, y = self.lookup_label(label)
+                x, y = self.lookup_label(label)[1]
                 l = len(self.__crowdsourced_points[label].items()) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
