@@ -59,8 +59,10 @@ def send_message(bot, chat_id, text):
 def static_handler(command):
     text = open("static_responses/{}.txt".format(command), "r").read()
     if command == "help":
+        text2 = open("static_responses/help2.txt", "r").read()
         return CommandHandler(command,
-                              lambda bot, update: send_message(bot, update.message.from_user.id, text))
+                              lambda bot, update: [send_message(bot, update.message.from_user.id, text),
+                                                   send_message(bot, update.message.from_user.id, text2)])
 
     return CommandHandler(command,
         lambda bot, update: send_message(bot, update.message.chat.id, text))
@@ -1868,6 +1870,82 @@ def crowdsource_consent_handler(bot, update, chat_data, args):
     send_message(bot, chat_id, result[1])
 
 
+def my_crowdsourced_points_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    if len(args) != 1:
+        send_message(bot, chat_id, "usage: /mycrowdsourcedpoints {plot_id}")
+        return
+
+    try:
+        plot_id = int(args[0])
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID must be an integer!")
+        return
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    result = plot.get_crowdsourced_points(username)
+    send_message(bot, chat_id, result[1])
+
+
+def whos_crowdsourceable_handler(bot, update, chat_data, args):
+    chat_id = update.message.chat.id
+    user = update.message.from_user
+    username = ""
+
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+
+    if len(args) != 1:
+        send_message(bot, chat_id, "usage: /mycrowdsourcedpoints {plot_id}")
+        return
+
+    try:
+        plot_id = int(args[0])
+    except ValueError:
+        send_message(bot, chat_id, "Plot ID must be an integer!")
+        return
+
+    if chat_data.get("plots") is None:
+        chat_data["plots"] = {}
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    plot = chat_data["plots"].get(plot_id)
+
+    if plot is None:
+        send_message(bot, chat_id, "That plot (" + str(plot_id) + ") doesn't exist!")
+        return
+
+    result = plot.whos_crowdsourceable()
+    send_message(bot, chat_id, result[1])
+
+
 def handle_error(bot, update, error):
     try:
         raise error
@@ -1924,6 +2002,8 @@ if __name__ == "__main__":
     radar_plot_me_aliases = ["plotmeradar", "pmr", "helicoptersir"]
     plot_crowdsource_aliases = ["plotcrowdsource", "pc"]
     crowdsource_consent_aliases = ["crowdsourceconsent", "cc"]
+    my_crowdsourced_points_aliases = ["mycrowdsourcedpoints", "mcp"]
+    whos_crowdsourceable_aliases = ["whoscrowdsourceable", "wcs"]
     commands = [("create_plot", 2, create_plot_aliases),
                 ("plot_me", 2, plot_me_aliases),
                 ("remove_me", 2, remove_me_aliases),
@@ -1962,7 +2042,9 @@ if __name__ == "__main__":
                 ("radar_plot", 2, radar_plot_aliases),
                 ("radar_plot_me", 2, radar_plot_me_aliases),
                 ("plot_crowdsource", 2, plot_crowdsource_aliases),
-                ("crowdsource_consent", 2, crowdsource_consent_aliases)]
+                ("crowdsource_consent", 2, crowdsource_consent_aliases),
+                ("my_crowdsourced_points", 2, my_crowdsourced_points_aliases),
+                ("whos_crowdsourceable", 2, whos_crowdsourceable_aliases)]
     for c in commands:
         func = locals()[c[0] + "_handler"]
         if c[1] == 0:

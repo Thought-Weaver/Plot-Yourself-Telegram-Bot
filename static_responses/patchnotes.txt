@@ -1,18 +1,7 @@
-Patch Notes (11/27/2019):
+Patch Notes (11/28/2019):
 
 New Features:
 
--Toggling off labels for /showplot for Radar Plots now displays a GIF of each person on the plot.
-    * To use this, just do /showplot [ID] 0
--Changed /radarplotme to /plotmeradar to be consistent. The simple alias is now /pmr.
--Added /plotcrowdsource and /crowdsourceconsent for crowdsource plotting.
-    * You have to give your consent to be crowdsourced on each plot: /cc [plot_id]
-    * You must then plot yourself as an initial point somewhere on the plot.
-    * Others can then /pc [plot_id] [name] [values] to contribute!
-    * Note: For now, remove any spaces from the name.
-    * You can remove your consent by using /cc [plot_id] again.
-
-Bug Fixes:
-
--Fixed a bug where Radar Plot labels couldn't have spaces.
--Fixed a bug where /pmr broke entirely.
+-Added /mcp {plot_id} to display who has crowdsourced you where.
+-Added /whoscrowdsourceable {plot_id} (/wcs) to display who can be crowdsourced on a plot.
+-Improved /help!

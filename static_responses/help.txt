@@ -38,6 +38,10 @@ Here's a list of helpful commands for making plots. For more information, see th
 /percentplotme {plot_id} {percent x} {percent y} {err_x} {err_y}
 /radarplot --title {-t} --labels {l1 l2 ...} {--custompoints}
 /radarplotme -l {value1} -l {value2} ...
+/crowdsourceconsent {plot_id}
+/plotcrowdsource {plot_id} {label} {values}
+/mycrowdsourcedpoints {plot_id}
+/whoscrowdsourceable {plot_id}
 
 Note that all the arguments for /createplot and /boxedplot are optional. Also note that the default bounds on a plot are [-10, 10] on both axes. Here are a couple of examples:
 

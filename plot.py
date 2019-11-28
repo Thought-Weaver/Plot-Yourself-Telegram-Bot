@@ -19,10 +19,6 @@ from sympy import S, symbols, printing
 # however, I'll be returning non-errors, so I might want to implement a tuple system: (err_code, data)
 # Let 0 be success and 1 be some error.
 
-# https://www.science-emergence.com/Articles/How-to-put-the-origin-in-the-center-of-the-figure-with-matplotlib-/
-# https://pythonspot.com/matplotlib-scatterplot/
-# https://stackoverflow.com/questions/51113062/how-to-receive-images-from-telegram-bot
-
 class Plot:
     def __init__(self, name, xaxisleft, xaxisright, yaxisbottom, yaxistop, minx, maxx, miny, maxy, createdby, id, custompoints=False):
         self.__name = name
@@ -353,6 +349,7 @@ class Plot:
             return 0, "You have now consented to being crowdsourced for this plot."
 
     def update_points_with_crowdsource(self):
+        updated_points = self.__points
         try:
             for label in self.__crowdsourced_points.keys():
                 x, y = self.lookup_label(label)[1]
@@ -360,9 +357,10 @@ class Plot:
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
                     y += y2
-                for i in range(len(self.__points)):
-                    if self.__points[i][0] == label:
-                        self.__points[i] = (label, x / l, y / l, 0, 0)
+                for i in range(len(updated_points)):
+                    if updated_points[i][0] == label:
+                        updated_points[i] = (label, x / l, y / l, 0, 0)
+            return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
 
@@ -386,6 +384,25 @@ class Plot:
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+
+    def get_crowdsourced_points(self, label):
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                return 1, "No one has crowdsourced you on that plot!"
+            return 0, str(self.__crowdsourced_points.get(label).values())
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "No one has crowdsourced you on that plot!"
+
+    def whos_crowdsourceable(self):
+        try:
+            text = "Crowdsourceable:\n\n"
+            for label in self.__crowdsourced_points.keys():
+                text += label + "\n"
+            return 0, text
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "No one has been crowdsourced on that plot yet!"
 
 
 class BoxedPlot:
@@ -726,6 +743,7 @@ class BoxedPlot:
             return 0, "You have now consented to being crowdsourced for this plot."
 
     def update_points_with_crowdsource(self):
+        updated_points = self.__points
         try:
             for label in self.__crowdsourced_points.keys():
                 x, y = self.lookup_label(label)[1]
@@ -733,9 +751,10 @@ class BoxedPlot:
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
                     y += y2
-                for i in range(len(self.__points)):
-                    if self.__points[i][0] == label:
-                        self.__points[i] = (label, x / l, y / l, 0, 0)
+                for i in range(len(updated_points)):
+                    if updated_points[i][0] == label:
+                        updated_points[i] = (label, x / l, y / l, 0, 0)
+            return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
 
@@ -759,6 +778,25 @@ class BoxedPlot:
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+
+    def get_crowdsourced_points(self, label):
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                return 1, "No one has crowdsourced you on that plot!"
+            return 0, str(self.__crowdsourced_points.get(label).values())
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "No one has crowdsourced you on that plot!"
+
+    def whos_crowdsourceable(self):
+        try:
+            text = "Crowdsourceable:\n\n"
+            for label in self.__crowdsourced_points.keys():
+                text += label + "\n"
+            return 0, text
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "No one has been crowdsourced on that plot yet!"
 
 
 class AlignmentChart:
@@ -1101,6 +1139,7 @@ class AlignmentChart:
             return 0, "You have now consented to being crowdsourced for this plot."
 
     def update_points_with_crowdsource(self):
+        updated_points = self.__points
         try:
             for label in self.__crowdsourced_points.keys():
                 x, y = self.lookup_label(label)[1]
@@ -1108,9 +1147,10 @@ class AlignmentChart:
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
                     y += y2
-                for i in range(len(self.__points)):
-                    if self.__points[i][0] == label:
-                        self.__points[i] = (label, x / l, y / l, 0, 0)
+                for i in range(len(updated_points)):
+                    if updated_points[i][0] == label:
+                        updated_points[i] = (label, x / l, y / l, 0, 0)
+            return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
 
@@ -1134,6 +1174,25 @@ class AlignmentChart:
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+
+    def get_crowdsourced_points(self, label):
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                return 1, "No one has crowdsourced you on that plot!"
+            return 0, str(self.__crowdsourced_points.get(label).values())
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "No one has crowdsourced you on that plot!"
+
+    def whos_crowdsourceable(self):
+        try:
+            text = "Crowdsourceable:\n\n"
+            for label in self.__crowdsourced_points.keys():
+                text += label + "\n"
+            return 0, text
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "No one has been crowdsourced on that plot yet!"
 
 
 class TrianglePlot:
@@ -1456,6 +1515,7 @@ class TrianglePlot:
             return 0, "You have now consented to being crowdsourced for this plot."
 
     def update_points_with_crowdsource(self):
+        updated_points = self.__points
         try:
             for label in self.__crowdsourced_points.keys():
                 x, y = self.lookup_label(label)[1]
@@ -1463,9 +1523,10 @@ class TrianglePlot:
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
                     y += y2
-                for i in range(len(self.__points)):
-                    if self.__points[i][0] == label:
-                        self.__points[i] = (label, x / l, y / l, 0, 0)
+                for i in range(len(updated_points)):
+                    if updated_points[i][0] == label:
+                        updated_points[i] = (label, x / l, y / l, 0, 0)
+            return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
 
@@ -1489,6 +1550,25 @@ class TrianglePlot:
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+
+    def get_crowdsourced_points(self, label):
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                return 1, "No one has crowdsourced you on that plot!"
+            return 0, str(self.__crowdsourced_points.get(label).values())
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "No one has crowdsourced you on that plot!"
+
+    def whos_crowdsourceable(self):
+        try:
+            text = "Crowdsourceable:\n\n"
+            for label in self.__crowdsourced_points.keys():
+                text += label + "\n"
+            return 0, text
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "No one has been crowdsourced on that plot yet!"
 
 
 class RadarPlot:
@@ -1710,3 +1790,22 @@ class RadarPlot:
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "You can't remove your crowdsource contribution to a point that doesn't exist!"
+
+    def get_crowdsourced_points(self, label):
+        try:
+            if self.__crowdsourced_points.get(label) is None:
+                return 1, "No one has crowdsourced you on that plot!"
+            return 0, str(self.__crowdsourced_points.get(label).values())
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "No one has crowdsourced you on that plot!"
+
+    def whos_crowdsourceable(self):
+        try:
+            text = "Crowdsourceable:\n\n"
+            for label in self.__crowdsourced_points.keys():
+                text += label + "\n"
+            return 0, text
+        except AttributeError:
+            self.__crowdsourced_points = {}
+            return 1, "No one has been crowdsourced on that plot yet!"
