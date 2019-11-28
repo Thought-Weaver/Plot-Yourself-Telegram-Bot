@@ -1780,15 +1780,6 @@ def radar_plot_me_handler(bot, update, chat_data, args):
 def plot_crowdsource_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
 
     # Must have x, y values at least.
     if len(args) < 4:
@@ -1828,22 +1819,7 @@ def plot_crowdsource_handler(bot, update, chat_data, args):
     if result is None:
         return
 
-    if result[0] == 1:
-        send_message(bot, chat_id, result[1])
-        return
-    elif result[0] == 0:
-        img = plot.generate_plot()
-
-        if img is None:
-            return
-
-        if img[0] == 1:
-            send_message(bot, chat_id, img[1])
-            return
-        elif img[0] == 0:
-            bot.send_photo(chat_id=chat_id, photo=img[1])
-
-        chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+    send_message(bot, chat_id, result[1])
 
 
 def crowdsource_consent_handler(bot, update, chat_data, args):

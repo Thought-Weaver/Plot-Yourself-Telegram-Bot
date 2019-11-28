@@ -340,6 +340,7 @@ class Plot:
             if self.__crowdsourced_points.get(label) is None:
                 self.__crowdsourced_points[label] = {}
             self.__crowdsourced_points[label][id] = (x, y)
+        return 0, "Your contribution has been added!"
 
     def add_crowdsource_consent(self, id, label):
         try:
@@ -1087,6 +1088,7 @@ class AlignmentChart:
             if self.__crowdsourced_points.get(label) is None:
                 self.__crowdsourced_points[label] = {}
             self.__crowdsourced_points[label][id] = (x, y)
+        return 0, "Your contribution has been added!"
 
     def add_crowdsource_consent(self, id, label):
         try:
@@ -1441,6 +1443,7 @@ class TrianglePlot:
             if self.__crowdsourced_points.get(label) is None:
                 self.__crowdsourced_points[label] = {}
             self.__crowdsourced_points[label][id] = (x, y)
+        return 0, "Your contribution has been added!"
 
     def add_crowdsource_consent(self, id, label):
         try:
@@ -1662,6 +1665,7 @@ class RadarPlot:
             if self.__crowdsourced_points.get(label) is None:
                 self.__crowdsourced_points[label] = {}
             self.__crowdsourced_points[label][id] = vals
+        return 0, "Your contribution has been added!"
 
     def add_crowdsource_consent(self, id, label):
         try:
