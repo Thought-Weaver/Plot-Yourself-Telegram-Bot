@@ -1818,10 +1818,10 @@ def plot_crowdsource_handler(bot, update, chat_data, args):
         return
 
     if isinstance(plot, RadarPlot):
-        result = plot.add_crowdsource_point(user.id, username, vals)
+        result = plot.add_crowdsource_point(user.id, label, vals)
     else:
         if len(vals) == 2:
-            result = plot.add_crowdsource_point(user.id, username, vals[0], vals[1])
+            result = plot.add_crowdsource_point(user.id, label, vals[0], vals[1])
         else:
             send_message(bot, chat_id, "You need to specify both an x and y coordinate.")
 
