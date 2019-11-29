@@ -71,15 +71,10 @@ class Plot:
         return 0, ""
 
     def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
-        self.update_points_with_crowdsource()
+        updated_points = self.update_points_with_crowdsource()
 
-        # Quick check that all the points have errors.
-        for i in range(len(self.__points)):
-            if len(self.__points[i]) != 5:
-                self.__points[i] = (self.__points[i][0], self.__points[i][1], self.__points[i][2], 0, 0)
-
-        X = [p[1] for p in self.__points]
-        Y = [p[2] for p in self.__points]
+        X = [p[1] for p in updated_points]
+        Y = [p[2] for p in updated_points]
         err_X = [p[3] for p in self.__points]
         err_Y = [p[4] for p in self.__points]
         labels = [p[0] for p in self.__points]
@@ -349,7 +344,7 @@ class Plot:
             return 0, "You have now consented to being crowdsourced for this plot."
 
     def update_points_with_crowdsource(self):
-        updated_points = self.__points
+        updated_points = self.__points.copy()
         try:
             for label in self.__crowdsourced_points.keys():
                 x, y = self.lookup_label(label)[1]
@@ -359,10 +354,11 @@ class Plot:
                     y += y2
                 for i in range(len(updated_points)):
                     if updated_points[i][0] == label:
-                        updated_points[i] = (label, x / l, y / l, 0, 0)
+                        updated_points[i] = (label, x / l, y / l, updated_points[i][3], updated_points[i][4])
             return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
+        return self.__points
 
     def remove_crowdsource_consent(self, id, label):
         try:
@@ -389,7 +385,7 @@ class Plot:
         try:
             if self.__crowdsourced_points.get(label) is None:
                 return 1, "No one has crowdsourced you on that plot!"
-            return 0, str(self.__crowdsourced_points.get(label).values())
+            return 0, "\n".join([str(v) for v in self.__crowdsourced_points.get(label).values()])
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "No one has crowdsourced you on that plot!"
@@ -397,12 +393,12 @@ class Plot:
     def whos_crowdsourceable(self):
         try:
             text = "Crowdsourceable:\n\n"
-            for label in self.__crowdsourced_points.keys():
+            for (id, label) in self.__crowdsourceable:
                 text += label + "\n"
             return 0, text
         except AttributeError:
-            self.__crowdsourced_points = {}
-            return 1, "No one has been crowdsourced on that plot yet!"
+            self.__crowdsourceable = []
+            return 1, "No one has consented to being crowdsourced on that plot!"
 
 
 class BoxedPlot:
@@ -456,18 +452,13 @@ class BoxedPlot:
         return 0, ""
 
     def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
-        self.update_points_with_crowdsource()
+        updated_points = self.update_points_with_crowdsource()
 
-        # Quick check that all the points have errors.
-        for i in range(len(self.__points)):
-            if len(self.__points[i]) != 5:
-                self.__points[i] = (self.__points[i][0], self.__points[i][1], self.__points[i][2], 0, 0)
-
-        X = [p[1] for p in self.__points]
-        Y = [p[2] for p in self.__points]
-        err_X = [p[3] for p in self.__points]
-        err_Y = [p[4] for p in self.__points]
-        labels = [p[0] for p in self.__points]
+        X = [p[1] for p in updated_points]
+        Y = [p[2] for p in updated_points]
+        err_X = [p[3] for p in updated_points]
+        err_Y = [p[4] for p in updated_points]
+        labels = [p[0] for p in updated_points]
         colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
                   for color_hash in [ColorHash(label).rgb for label in labels]]
 
@@ -753,10 +744,11 @@ class BoxedPlot:
                     y += y2
                 for i in range(len(updated_points)):
                     if updated_points[i][0] == label:
-                        updated_points[i] = (label, x / l, y / l, 0, 0)
+                        updated_points[i] = (label, x / l, y / l, updated_points[i][3], updated_points[i][4])
             return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
+        return self.__points
 
     def remove_crowdsource_consent(self, id, label):
         try:
@@ -783,7 +775,7 @@ class BoxedPlot:
         try:
             if self.__crowdsourced_points.get(label) is None:
                 return 1, "No one has crowdsourced you on that plot!"
-            return 0, str(self.__crowdsourced_points.get(label).values())
+            return 0, "\n".join([str(v) for v in self.__crowdsourced_points.get(label).values()])
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "No one has crowdsourced you on that plot!"
@@ -791,12 +783,12 @@ class BoxedPlot:
     def whos_crowdsourceable(self):
         try:
             text = "Crowdsourceable:\n\n"
-            for label in self.__crowdsourced_points.keys():
+            for (id, label) in self.__crowdsourceable:
                 text += label + "\n"
             return 0, text
         except AttributeError:
-            self.__crowdsourced_points = {}
-            return 1, "No one has been crowdsourced on that plot yet!"
+            self.__crowdsourceable = []
+            return 1, "No one has consented to being crowdsourced on that plot!"
 
 
 class AlignmentChart:
@@ -850,18 +842,13 @@ class AlignmentChart:
         return 0, ""
 
     def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
-        self.update_points_with_crowdsource()
+        updated_points = self.update_points_with_crowdsource()
 
-        # Quick check that all the points have errors.
-        for i in range(len(self.__points)):
-            if len(self.__points[i]) != 5:
-                self.__points[i] = (self.__points[i][0], self.__points[i][1], self.__points[i][2], 0, 0)
-
-        X = [p[1] for p in self.__points]
-        Y = [p[2] for p in self.__points]
-        err_X = [p[3] for p in self.__points]
-        err_Y = [p[4] for p in self.__points]
-        labels = [p[0] for p in self.__points]
+        X = [p[1] for p in updated_points]
+        Y = [p[2] for p in updated_points]
+        err_X = [p[3] for p in updated_points]
+        err_Y = [p[4] for p in updated_points]
+        labels = [p[0] for p in updated_points]
         colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
                   for color_hash in [ColorHash(label).rgb for label in labels]]
 
@@ -1149,10 +1136,11 @@ class AlignmentChart:
                     y += y2
                 for i in range(len(updated_points)):
                     if updated_points[i][0] == label:
-                        updated_points[i] = (label, x / l, y / l, 0, 0)
+                        updated_points[i] = (label, x / l, y / l, updated_points[i][3], updated_points[i][4])
             return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
+        return self.__points
 
     def remove_crowdsource_consent(self, id, label):
         try:
@@ -1179,7 +1167,7 @@ class AlignmentChart:
         try:
             if self.__crowdsourced_points.get(label) is None:
                 return 1, "No one has crowdsourced you on that plot!"
-            return 0, str(self.__crowdsourced_points.get(label).values())
+            return 0, "\n".join([str(v) for v in self.__crowdsourced_points.get(label).values()])
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "No one has crowdsourced you on that plot!"
@@ -1187,12 +1175,12 @@ class AlignmentChart:
     def whos_crowdsourceable(self):
         try:
             text = "Crowdsourceable:\n\n"
-            for label in self.__crowdsourced_points.keys():
+            for (id, label) in self.__crowdsourceable:
                 text += label + "\n"
             return 0, text
         except AttributeError:
-            self.__crowdsourced_points = {}
-            return 1, "No one has been crowdsourced on that plot yet!"
+            self.__crowdsourceable = []
+            return 1, "No one has consented to being crowdsourced on that plot!"
 
 
 class TrianglePlot:
@@ -1251,18 +1239,13 @@ class TrianglePlot:
         return 0, ""
 
     def generate_plot(self, toggle_labels=True, zoom_x_min=None, zoom_y_min=None, zoom_x_max=None, zoom_y_max=None, contour=False):
-        self.update_points_with_crowdsource()
+        updated_points = self.update_points_with_crowdsource()
 
-        # Quick check that all the points have errors.
-        for i in range(len(self.__points)):
-            if len(self.__points[i]) != 5:
-                self.__points[i] = (self.__points[i][0], self.__points[i][1], self.__points[i][2], 0, 0)
-
-        X = [p[1] for p in self.__points]
-        Y = [p[2] for p in self.__points]
-        err_X = [p[3] for p in self.__points]
-        err_Y = [p[4] for p in self.__points]
-        labels = [p[0] for p in self.__points]
+        X = [p[1] for p in updated_points]
+        Y = [p[2] for p in updated_points]
+        err_X = [p[3] for p in updated_points]
+        err_Y = [p[4] for p in updated_points]
+        labels = [p[0] for p in updated_points]
         colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
                   for color_hash in [ColorHash(label).rgb for label in labels]]
 
@@ -1525,10 +1508,11 @@ class TrianglePlot:
                     y += y2
                 for i in range(len(updated_points)):
                     if updated_points[i][0] == label:
-                        updated_points[i] = (label, x / l, y / l, 0, 0)
+                        updated_points[i] = (label, x / l, y / l, updated_points[i][3], updated_points[i][4])
             return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
+        return self.__points
 
     def remove_crowdsource_consent(self, id, label):
         try:
@@ -1563,12 +1547,12 @@ class TrianglePlot:
     def whos_crowdsourceable(self):
         try:
             text = "Crowdsourceable:\n\n"
-            for label in self.__crowdsourced_points.keys():
+            for (id, label) in self.__crowdsourceable:
                 text += label + "\n"
             return 0, text
         except AttributeError:
-            self.__crowdsourced_points = {}
-            return 1, "No one has been crowdsourced on that plot yet!"
+            self.__crowdsourceable = []
+            return 1, "No one has consented to being crowdsourced on that plot!"
 
 
 class RadarPlot:
@@ -1614,10 +1598,10 @@ class RadarPlot:
         return 0, ""
 
     def generate_plot(self, toggle_labels=True):
-        self.update_points_with_crowdsource()
+        updated_points = self.update_points_with_crowdsource()
 
-        point_labels = [p[0] for p in self.__points]
-        vals = [np.concatenate((p[1], [p[1][0]])) for p in self.__points]
+        point_labels = [p[0] for p in updated_points]
+        vals = [np.concatenate((p[1], [p[1][0]])) for p in updated_points]
         colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
                   for color_hash in [ColorHash(label).rgb for label in point_labels]]
 
@@ -1759,16 +1743,19 @@ class RadarPlot:
 
     def update_points_with_crowdsource(self):
         try:
+            updated_points = self.__points.copy()
             for label in self.__crowdsourced_points.keys():
                 vals = self.lookup_label(label)[1]
                 for (id, vals2) in self.__crowdsourced_points[label].items():
                     vals = [sum(x) for x in zip(vals, vals2)]
                 vals = [v / (len(self.__crowdsourced_points[label].items()) + 1) for v in vals]
-                for i in range(len(self.__points)):
-                    if self.__points[i][0] == label:
-                        self.__points[i] = (label, vals)
+                for i in range(len(updated_points)):
+                    if updated_points[i][0] == label:
+                        updated_points[i] = (label, vals)
+            return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
+        return self.__points
 
     def remove_crowdsource_consent(self, id, label):
         try:
@@ -1795,7 +1782,7 @@ class RadarPlot:
         try:
             if self.__crowdsourced_points.get(label) is None:
                 return 1, "No one has crowdsourced you on that plot!"
-            return 0, str(self.__crowdsourced_points.get(label).values())
+            return 0, "\n".join([str(v) for v in self.__crowdsourced_points.get(label).values()])
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "No one has crowdsourced you on that plot!"
@@ -1803,9 +1790,9 @@ class RadarPlot:
     def whos_crowdsourceable(self):
         try:
             text = "Crowdsourceable:\n\n"
-            for label in self.__crowdsourced_points.keys():
+            for (id, label) in self.__crowdsourceable:
                 text += label + "\n"
             return 0, text
         except AttributeError:
-            self.__crowdsourced_points = {}
-            return 1, "No one has been crowdsourced on that plot yet!"
+            self.__crowdsourceable = []
+            return 1, "No one has consented to being crowdsourced on that plot!"

@@ -1785,7 +1785,7 @@ def plot_crowdsource_handler(bot, update, chat_data, args):
 
     # Must have x, y values at least.
     if len(args) < 4:
-        send_message(bot, chat_id, "usage: /plotme {plot_id} {label} {vals}")
+        send_message(bot, chat_id, "usage: /plotcrowdsource {plot_id} {label} {vals}")
         return
 
     if chat_data.get("archived") is None:
@@ -1911,15 +1911,6 @@ def my_crowdsourced_points_handler(bot, update, chat_data, args):
 def whos_crowdsourceable_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
 
     if len(args) != 1:
         send_message(bot, chat_id, "usage: /mycrowdsourcedpoints {plot_id}")
