@@ -753,6 +753,13 @@ def lookup_handler(bot, update, chat_data, args):
 
 
 def my_bet_handler(bot, update, chat_data, args):
+    """
+    Input the correlation bet of the user for the current bet.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing the R^2 value to bet.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -779,6 +786,13 @@ def my_bet_handler(bot, update, chat_data, args):
 
 
 def setup_bet_handler(bot, update, chat_data, args):
+    """
+    Create a new correlation bet for the given plot and polynomial degree.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing the plot ID and the degree of the polynomial.
+    """
     chat_id = update.message.chat.id
 
     # Args are: plot_id degree
@@ -831,6 +845,12 @@ def setup_bet_handler(bot, update, chat_data, args):
 
 
 def cancel_bet_handler(bot, update, chat_data):
+    """
+    Cancels the current bet, if it exists.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    """
     chat_id = update.message.chat.id
 
     if chat_data.get("current_bet") is None:
@@ -843,6 +863,12 @@ def cancel_bet_handler(bot, update, chat_data):
 
 
 def complete_bet_handler(bot, update, chat_data):
+    """
+    Determines the winner of the current bet.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    """
     chat_id = update.message.chat.id
 
     if chat_data.get("current_bet") is None:
@@ -944,6 +970,12 @@ def complete_bet_handler(bot, update, chat_data):
 
 
 def scoreboard_handler(bot, update, chat_data):
+    """
+    Sends a message with the betting scoreboard.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    """
     chat_id = update.message.chat.id
 
     if chat_data.get("scoreboard") is None:
@@ -971,6 +1003,13 @@ def scoreboard_handler(bot, update, chat_data):
 
 
 def equation_handler(bot, update, chat_data, args):
+    """
+    Get the equation of a polynomial for the plot matching the input ID.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing the plot ID and the degree of the polynomial.
+    """
     chat_id = update.message.chat.id
 
     # Args are: plot_id {optional degree}
@@ -1018,6 +1057,13 @@ def equation_handler(bot, update, chat_data, args):
 
 
 def edit_plot_handler(bot, update, chat_data, args):
+    """
+    Edits the parameters for the plot matching the input ID, if the creator used the handler.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list of unix-esque plot arguments to be parsed.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1067,6 +1113,13 @@ def edit_plot_handler(bot, update, chat_data, args):
 
 
 def current_bet_handler(bot, update, chat_data, args):
+    """
+    Sends a message with the current bet status, listing participants and their bets.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A possibly empty list containing an integer specifying a sort method.
+    """
     chat_id = update.message.chat.id
 
     if chat_data.get("current_bet") is None:
@@ -1108,6 +1161,13 @@ def current_bet_handler(bot, update, chat_data, args):
 
 
 def alignment_chart_handler(bot, update, chat_data, args):
+    """
+    Creates an alignment chart.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: The unix-esque arg list for making an alignment chart.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1153,6 +1213,13 @@ def alignment_chart_handler(bot, update, chat_data, args):
 
 
 def archive_handler(bot, update, chat_data, args):
+    """
+    Archives a plot from the full list of plots.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing the plot ID to be archived.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1201,6 +1268,13 @@ def archive_handler(bot, update, chat_data, args):
 
 
 def unarchive_handler(bot, update, chat_data, args):
+    """
+    Unarchives a plot from the archived list of plots.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing the plot ID to be unarchived.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1251,6 +1325,12 @@ def unarchive_handler(bot, update, chat_data, args):
 
 
 def my_plots_handler(bot, update, chat_data):
+    """
+    Sends a message to the caller with their created plots.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     user_id = user.id
@@ -1278,6 +1358,12 @@ def my_plots_handler(bot, update, chat_data):
 
 
 def archive_all_handler(bot, update, chat_data):
+    """
+    Archives all the caller's plots.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1304,6 +1390,12 @@ def archive_all_handler(bot, update, chat_data):
 
 
 def unarchive_all_handler(bot, update, chat_data):
+    """
+    Unarchives all the caller's plots.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1330,6 +1422,13 @@ def unarchive_all_handler(bot, update, chat_data):
 
 
 def last_updated_handler(bot, update, chat_data, args):
+    """
+    Get the time when the plot with the matching ID was last changed.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing the plot ID.
+    """
     chat_id = update.message.chat.id
 
     # Args are: plot_id
@@ -1360,6 +1459,13 @@ def last_updated_handler(bot, update, chat_data, args):
 
 
 def whos_plotted_handler(bot, update, chat_data, args):
+    """
+    Sends a message with the list of people plotted on the plot with the matching input ID.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing the plot ID.
+    """
     chat_id = update.message.chat.id
 
     # Args are: plot_id
@@ -1398,6 +1504,13 @@ def whos_plotted_handler(bot, update, chat_data, args):
 
 
 def triangle_plot_handler(bot, update, chat_data, args):
+    """
+    Creates a triangle plot.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A unix-esque arg list for creating a triangle plot.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1433,6 +1546,13 @@ def triangle_plot_handler(bot, update, chat_data, args):
 
 
 def zoom_handler(bot, update, chat_data, args):
+    """
+    Sends a message with a specific rectangular area of a plot.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID and the corner coordinates for a rectangle.
+    """
     chat_id = update.message.chat.id
 
     if len(args) != 5:
@@ -1477,6 +1597,13 @@ def zoom_handler(bot, update, chat_data, args):
 
 
 def contour_handler(bot, update, chat_data, args):
+    """
+    Sends a message with a contour of the points as distances from the center of the data.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A possibly empty list containing a plot ID and a label toggle value.
+    """
     chat_id = update.message.chat.id
 
     # Args are: {optional plot_id} {optional toggle for labels}
@@ -1526,6 +1653,12 @@ def contour_handler(bot, update, chat_data, args):
 
 
 def my_bet_data_handler(bot, update, chat_data):
+    """
+    Sends the caller a message with the bets they've placed and their win data.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     user_id = user.id
@@ -1550,6 +1683,12 @@ def my_bet_data_handler(bot, update, chat_data):
 
 
 def bet_history_handler(bot, update, chat_data):
+    """
+    Sends the caller a message with the history of all bets made in that chat.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     user_id = user.id
@@ -1581,6 +1720,13 @@ def bet_history_handler(bot, update, chat_data):
 
 
 def percent_plot_me_handler(bot, update, chat_data, args):
+    """
+    Plots the caller at that percent value of the limits of the plot.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID and the percent values.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1672,6 +1818,13 @@ def percent_plot_me_handler(bot, update, chat_data, args):
 
 
 def radar_plot_handler(bot, update, chat_data, args):
+    """
+    Creates a radar plot.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A unix-esque arg list for creating a radar plot.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1704,6 +1857,13 @@ def radar_plot_handler(bot, update, chat_data, args):
 
 
 def radar_plot_me_handler(bot, update, chat_data, args):
+    """
+    Plots the caller on a radar plot with the matching ID.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID and the values for plotting.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1759,6 +1919,13 @@ def radar_plot_me_handler(bot, update, chat_data, args):
 
 
 def plot_crowdsource_handler(bot, update, chat_data, args):
+    """
+    Add a plot contribution for the specified label on the specified plot.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID, a label, and the plotting values.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1811,6 +1978,13 @@ def plot_crowdsource_handler(bot, update, chat_data, args):
 
 
 def crowdsource_consent_handler(bot, update, chat_data, args):
+    """
+    Toggles the caller's consent to be crowdsourced on a plot with the matching input ID.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A possibly empty list containing a plot ID.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1850,6 +2024,13 @@ def crowdsource_consent_handler(bot, update, chat_data, args):
 
 
 def my_crowdsourced_points_handler(bot, update, chat_data, args):
+    """
+    Sends a message with the points making up the caller's crowdsource on a specified plot.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
     username = get_username(user)
@@ -1894,8 +2075,14 @@ def my_crowdsourced_points_handler(bot, update, chat_data, args):
 
 
 def whos_crowdsourceable_handler(bot, update, chat_data, args):
+    """
+    Sends a message with the users who have consented to being crowdsourced on a plot.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID.
+    """
     chat_id = update.message.chat.id
-    user = update.message.from_user
 
     if len(args) != 1:
         send_message(bot, chat_id, "usage: /mycrowdsourcedpoints {plot_id}")
@@ -1923,6 +2110,12 @@ def whos_crowdsourceable_handler(bot, update, chat_data, args):
 
 
 def handle_error(bot, update, error):
+    """
+    Handle a Telegram or Python error. If a Telegram error, log it specically.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param error: The error to be raised.
+    """
     try:
         raise error
     except TelegramError:
