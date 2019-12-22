@@ -385,7 +385,7 @@ class Plot:
         try:
             if self.__crowdsourced_points.get(label) is None:
                 return 1, "No one has crowdsourced you on that plot!"
-            return 0, "\n".join([str(v) for v in self.__crowdsourced_points.get(label).values()])
+            return 0, self.__crowdsourced_points.get(label).items()
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "No one has crowdsourced you on that plot!"
@@ -775,7 +775,7 @@ class BoxedPlot:
         try:
             if self.__crowdsourced_points.get(label) is None:
                 return 1, "No one has crowdsourced you on that plot!"
-            return 0, "\n".join([str(v) for v in self.__crowdsourced_points.get(label).values()])
+            return 0, self.__crowdsourced_points.get(label).items()
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "No one has crowdsourced you on that plot!"
@@ -1167,7 +1167,7 @@ class AlignmentChart:
         try:
             if self.__crowdsourced_points.get(label) is None:
                 return 1, "No one has crowdsourced you on that plot!"
-            return 0, "\n".join([str(v) for v in self.__crowdsourced_points.get(label).values()])
+            return 0, self.__crowdsourced_points.get(label).items()
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "No one has crowdsourced you on that plot!"
@@ -1539,7 +1539,7 @@ class TrianglePlot:
         try:
             if self.__crowdsourced_points.get(label) is None:
                 return 1, "No one has crowdsourced you on that plot!"
-            return 0, str(self.__crowdsourced_points.get(label).values())
+            return 0, self.__crowdsourced_points.get(label).items()
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "No one has crowdsourced you on that plot!"
@@ -1782,7 +1782,8 @@ class RadarPlot:
         try:
             if self.__crowdsourced_points.get(label) is None:
                 return 1, "No one has crowdsourced you on that plot!"
-            return 0, "\n".join([str(v) for v in self.__crowdsourced_points.get(label).values()])
+            # "\n".join([str(v) for v in self.__crowdsourced_points.get(label).values()])
+            return 0, self.__crowdsourced_points.get(label).items()
         except AttributeError:
             self.__crowdsourced_points = {}
             return 1, "No one has crowdsourced you on that plot!"

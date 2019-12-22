@@ -48,6 +48,8 @@ ARG_PARSER.add_argument("-My", "--maxy", type=int)
 ARG_PARSER.add_argument("--custompoints", action="store_true")
 ARG_PARSER.add_argument("-l", "--labels", type=str, action="append", nargs='*')
 
+pp = PicklePersistence(filename="plotyourselfbot", on_flush=False)
+
 def send_message(bot, chat_id, text):
     try:
         # print(text)
@@ -56,7 +58,29 @@ def send_message(bot, chat_id, text):
         raise e
 
 
+def get_username(user):
+    """
+    Given a Telegram user object, return the username.
+    :param user: A Telegram user object.
+    :return: A string of the user's username, if it exists, else an empty string.
+    """
+    username = ""
+    if user.username is not None:
+        username = user.username
+    else:
+        if user.first_name is not None:
+            username = user.first_name + " "
+        if user.last_name is not None:
+            username += user.last_name
+    return username
+
+
 def static_handler(command):
+    """
+    Sends the relevant text for a static command -- that is, a comamnd with a constant return value.
+    :param command: A string for the command name.
+    :return: A command handler for the Telegram bot.
+    """
     text = open("static_responses/{}.txt".format(command), "r").read()
     if command == "help":
         text2 = open("static_responses/help2.txt", "r").read()
@@ -69,17 +93,16 @@ def static_handler(command):
 
 
 def create_plot_handler(bot, update, chat_data, args):
+    """
+    Creates a standard xy-plot.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A possibly empty list of arguments for constructing the plot.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     try:
         parsed = ARG_PARSER.parse_args(args)
@@ -135,17 +158,16 @@ def create_plot_handler(bot, update, chat_data, args):
 
 
 def remove_plot_handler(bot, update, chat_data, args):
+    """
+    Removes a plot from the chat data.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing an integer ID for a plot.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     if len(args) != 1:
         send_message(bot, chat_id, "usage: /removeplot {plot_id}")
@@ -181,20 +203,20 @@ def remove_plot_handler(bot, update, chat_data, args):
     if chat_data.get("archived") is not None and chat_data["archived"].get(plot_id) is not None:
         del chat_data["archived"][plot_id]
     send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been removed!")
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def plot_me_handler(bot, update, chat_data, args):
+    """
+    Plots a user at a specified point.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID, an x and y coordinate, and possibly error values for x and y.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     # Args are: {plot_id, but defaults to max key in non-archived plots}, x, y, err_x, err_y
     if len(args) < 2 or len(args) > 5:
@@ -251,20 +273,20 @@ def plot_me_handler(bot, update, chat_data, args):
             bot.send_photo(chat_id=chat_id, photo=img[1])
 
         chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def remove_me_handler(bot, update, chat_data, args):
+    """
+    Removes the user from a plot.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     # Args are: plot_id
     if len(args) > 1:
@@ -312,9 +334,17 @@ def remove_me_handler(bot, update, chat_data, args):
             bot.send_photo(chat_id=chat_id, photo=img[1])
 
         chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def show_plot_handler(bot, update, chat_data, args):
+    """
+    Sends a message with the image of the plot with the input ID.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID.
+    """
     chat_id = update.message.chat.id
 
     # Args are: {optional plot_id} {optional toggle for labels}
@@ -357,9 +387,16 @@ def show_plot_handler(bot, update, chat_data, args):
             bot.send_animation(chat_id=chat_id, animation=result[1])
             return
         bot.send_photo(chat_id=chat_id, photo=result[1])
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def list_plots_handler(bot, update, chat_data):
+    """
+    Sends a message with a list of all unarchived plots in the chat.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    """
     chat_id = update.message.chat.id
     user_id = update.message.from_user.id
 
@@ -384,6 +421,12 @@ def list_plots_handler(bot, update, chat_data):
 
 
 def full_list_plots_handler(bot, update, chat_data):
+    """
+    Sends a message with a list of all plots in the chat.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    """
     chat_id = update.message.chat.id
     user_id = update.message.from_user.id
 
@@ -402,6 +445,13 @@ def full_list_plots_handler(bot, update, chat_data):
 
 
 def get_plot_stats_handler(bot, update, chat_data, args):
+    """
+    Get descriptive statistics for the data on a plot with the input ID.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID.
+    """
     chat_id = update.message.chat.id
 
     # Args are: plot_id
@@ -443,6 +493,13 @@ def get_plot_stats_handler(bot, update, chat_data, args):
 
 
 def polyfit_plot_handler(bot, update, chat_data, args):
+    """
+    Fit a curve with the input degree to the plot with the input ID.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID, an optional degree (default: 1), and a value for toggling labels.
+    """
     chat_id = update.message.chat.id
 
     # Args are: plot_id {optional degree} {optional toggle_labels}
@@ -492,6 +549,13 @@ def polyfit_plot_handler(bot, update, chat_data, args):
 
 
 def whomademe_handler(bot, update, chat_data, args):
+    """
+    Send a message with who made the plot with the input ID.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID.
+    """
     chat_id = update.message.chat.id
 
     # Args are: plot_id
@@ -524,17 +588,16 @@ def whomademe_handler(bot, update, chat_data, args):
 
 
 def custom_point_handler(bot, update, chat_data, args):
+    """
+    Plot a point with a custom label on the plot with the input ID.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID, x and y coordinate, and a label.
+    """
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     # Args are: plot_id, x, y, label
     if len(args) < 4:
@@ -594,19 +657,13 @@ def custom_point_handler(bot, update, chat_data, args):
 
         chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
 
+    telegram.ext.PicklePersistence.flush(pp)
+
 
 def boxed_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     try:
         parsed = ARG_PARSER.parse_args(args)
@@ -649,6 +706,13 @@ def boxed_plot_handler(bot, update, chat_data, args):
 
 
 def lookup_handler(bot, update, chat_data, args):
+    """
+    Send a message with the location of the person with the input name on the plot with the input ID.
+    :param bot: The Telegram bot for handling messages.
+    :param update: The update data from the message, including the chat and user that sent it.
+    :param chat_data: The dictionary of data for the chat.
+    :param args: A list containing a plot ID and a name.
+    """
     chat_id = update.message.chat.id
 
     # Args are: plot_id, name (assume no spaces, will set lowercase)
@@ -691,19 +755,11 @@ def lookup_handler(bot, update, chat_data, args):
 def my_bet_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
+    username = get_username(user)
 
     if chat_data.get("current_bet") is None:
         send_message(bot, chat_id, "No bet currently exists!")
         return
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
 
     # Args are: R^2
     if len(args) != 1:
@@ -719,6 +775,7 @@ def my_bet_handler(bot, update, chat_data, args):
     # We assume there can only be one bet at a time. This has an associated degree and plot ID.
     chat_data["current_bet"]["bets"][(username, user.id)] = R2
     send_message(bot, chat_id, "Your bet has been placed!")
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def setup_bet_handler(bot, update, chat_data, args):
@@ -770,6 +827,7 @@ def setup_bet_handler(bot, update, chat_data, args):
     send_message(bot, chat_id, "The following bet was created:\n\nPlot ID: " +
                  str(chat_data["current_bet"]["plot_id"]) + "\nDegree: " +
                  str(chat_data["current_bet"]["degree"]))
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def cancel_bet_handler(bot, update, chat_data):
@@ -781,6 +839,7 @@ def cancel_bet_handler(bot, update, chat_data):
 
     chat_data["current_bet"] = None
     send_message(bot, chat_id, "The bet has been canceled.")
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def complete_bet_handler(bot, update, chat_data):
@@ -881,6 +940,7 @@ def complete_bet_handler(bot, update, chat_data):
 
     # Reset the current bet.
     chat_data["current_bet"] = None
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def scoreboard_handler(bot, update, chat_data):
@@ -960,15 +1020,7 @@ def equation_handler(bot, update, chat_data, args):
 def edit_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     if len(args) <= 1:
         send_message(bot, chat_id, "usage: /editplot {plot_id} --title {t} --xright {xr} "
@@ -1011,6 +1063,7 @@ def edit_plot_handler(bot, update, chat_data, args):
 
     plot.edit_plot(plot_args)
     send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been updated!")
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def current_bet_handler(bot, update, chat_data, args):
@@ -1057,15 +1110,7 @@ def current_bet_handler(bot, update, chat_data, args):
 def alignment_chart_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     try:
         parsed = ARG_PARSER.parse_args(args)
@@ -1110,15 +1155,7 @@ def alignment_chart_handler(bot, update, chat_data, args):
 def archive_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     if len(args) != 1:
         send_message(bot, chat_id, "usage: /archive {plot_id}")
@@ -1160,20 +1197,13 @@ def archive_handler(bot, update, chat_data, args):
 
     chat_data["archived"][plot_id] = chat_data["plots"][plot_id]
     send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been archived!")
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def unarchive_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     if len(args) != 1:
         send_message(bot, chat_id, "usage: /unarchive {plot_id}")
@@ -1217,21 +1247,14 @@ def unarchive_handler(bot, update, chat_data, args):
 
     del chat_data["plots"][plot_id]
     send_message(bot, chat_id, "Plot (" + str(plot_id) + ") has been unarchived!")
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def my_plots_handler(bot, update, chat_data):
     chat_id = update.message.chat.id
     user = update.message.from_user
     user_id = user.id
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     if chat_data.get("plots") is None:
         chat_data["plots"] = {}
@@ -1257,15 +1280,7 @@ def my_plots_handler(bot, update, chat_data):
 def archive_all_handler(bot, update, chat_data):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     if chat_data.get("plots") is None:
         chat_data["plots"] = {}
@@ -1285,20 +1300,13 @@ def archive_all_handler(bot, update, chat_data):
                 value.set_creator(username, user.id)
 
     send_message(bot, chat_id, "Your plots have been archived.")
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def unarchive_all_handler(bot, update, chat_data):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     if chat_data.get("plots") is None:
         chat_data["plots"] = {}
@@ -1318,6 +1326,7 @@ def unarchive_all_handler(bot, update, chat_data):
                 value.set_creator(username, user.id)
 
     send_message(bot, chat_id, "Your plots have been unarchived.")
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def last_updated_handler(bot, update, chat_data, args):
@@ -1391,15 +1400,7 @@ def whos_plotted_handler(bot, update, chat_data, args):
 def triangle_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     try:
         parsed = ARG_PARSER.parse_args(args)
@@ -1582,15 +1583,7 @@ def bet_history_handler(bot, update, chat_data):
 def percent_plot_me_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     # Assume that percent_x and percent_y are entered out of 100.
     if len(args) < 2 or len(args) > 5:
@@ -1675,20 +1668,13 @@ def percent_plot_me_handler(bot, update, chat_data, args):
             bot.send_photo(chat_id=chat_id, photo=img[1])
 
         chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def radar_plot_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     try:
         parsed = ARG_PARSER.parse_args(args)
@@ -1720,15 +1706,7 @@ def radar_plot_handler(bot, update, chat_data, args):
 def radar_plot_me_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     # Args are: plot_id, values
     if len(args) < 2:
@@ -1777,11 +1755,13 @@ def radar_plot_me_handler(bot, update, chat_data, args):
             bot.send_photo(chat_id=chat_id, photo=img[1])
 
         chat_data["plots"][plot_id].set_last_modified(datetime.datetime.now())
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def plot_crowdsource_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
+    username = get_username(user)
 
     # Must have x, y values at least.
     if len(args) < 4:
@@ -1798,6 +1778,10 @@ def plot_crowdsource_handler(bot, update, chat_data, args):
         vals = [float(f) for f in args[2:]]
     except ValueError:
         send_message(bot, chat_id, "Plot ID must be an int, label must be a string, and vals must be floats!")
+        return
+
+    if label == username:
+        send_message(bot, chat_id, "You cannot crowdsource yourself!")
         return
 
     if chat_data.get("plots") is None:
@@ -1817,25 +1801,19 @@ def plot_crowdsource_handler(bot, update, chat_data, args):
             result = plot.add_crowdsource_point(user.id, label, vals[0], vals[1])
         else:
             send_message(bot, chat_id, "You need to specify both an x and y coordinate.")
+            return
 
     if result is None:
         return
 
     send_message(bot, chat_id, result[1])
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def crowdsource_consent_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     if len(args) > 1:
         send_message(bot, chat_id, "usage: /crowdsourceconsent {optional plot_id}")
@@ -1868,20 +1846,13 @@ def crowdsource_consent_handler(bot, update, chat_data, args):
         return
 
     send_message(bot, chat_id, result[1])
+    telegram.ext.PicklePersistence.flush(pp)
 
 
 def my_crowdsourced_points_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
     user = update.message.from_user
-    username = ""
-
-    if user.username is not None:
-        username = user.username
-    else:
-        if user.first_name is not None:
-            username = user.first_name + " "
-        if user.last_name is not None:
-            username += user.last_name
+    username = get_username(user)
 
     if len(args) != 1:
         send_message(bot, chat_id, "usage: /mycrowdsourcedpoints {plot_id}")
@@ -1905,7 +1876,21 @@ def my_crowdsourced_points_handler(bot, update, chat_data, args):
         return
 
     result = plot.get_crowdsourced_points(username)
-    send_message(bot, chat_id, result[1])
+    if result[0] == 1:
+        send_message(bot, chat_id, result[1])
+    else:
+        items = result[1]
+        text = ""
+        for (id, value) in items:
+            member = bot.get_chat_member(chat_id, id)
+            member_username = member.user.username
+            if member_username is None:
+                if member.user.first_name is not None:
+                    member_username = member.user.first_name + " "
+                if user.last_name is not None:
+                    member_username += member.user.last_name
+            text += str(member_username) + ": " + str(value) + "\n"
+        send_message(bot, chat_id, text)
 
 
 def whos_crowdsourceable_handler(bot, update, chat_data, args):
@@ -1945,7 +1930,6 @@ def handle_error(bot, update, error):
 
 
 if __name__ == "__main__":
-    pp = PicklePersistence(filename="plotyourselfbot")
     bot = telegram.Bot(token=TOKEN)
     updater = Updater(token=TOKEN, persistence=pp)
     dispatcher = updater.dispatcher

@@ -1,0 +1,10 @@
+Patch Notes (11/13/2019):
+
+New Features:
+
+-Added /contour {plot_id} {label toggle} to create contour plots.
+-Better (behind-the-scenes) support for turning default plots into line plots.
+
+Bug Fixes:
+
+-Fixed an issue where Alignment Charts and Boxed Plots wouldn't be created in the proper plot list.
