@@ -305,9 +305,6 @@ class Plot:
 
     def add_crowdsource_point(self, id, label, x, y):
         # ID is the person plotting, label is the name of the point.
-        if label not in [p[0] for p in self.__points]:
-            return 1, "That person (" + label + ") has not plotted themself on that plot!"
-
         try:
             consent = False
             for (id, consent_label) in self.__crowdsourceable:
@@ -347,14 +344,26 @@ class Plot:
         updated_points = self.__points.copy()
         try:
             for label in self.__crowdsourced_points.keys():
-                x, y = self.lookup_label(label)[1]
+                point_index = -1
+                for i in range(len(updated_points)):
+                    if updated_points[i][0] == label:
+                        point_index = i
+                        break
+
+                if point_index != -1:
+                    x, y = self.lookup_label(label)[1]
+                else:
+                    x, y = 0, 0
+
                 l = len(self.__crowdsourced_points[label].items()) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
                     y += y2
-                for i in range(len(updated_points)):
-                    if updated_points[i][0] == label:
-                        updated_points[i] = (label, x / l, y / l, updated_points[i][3], updated_points[i][4])
+
+                if point_index != -1:
+                    updated_points[point_index] = (label, x / l, y / l, updated_points[point_index][3], updated_points[point_index][4])
+                else:
+                    updated_points.append((label, x / (l - 1), y / (l - 1), 0, 0))
             return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
@@ -696,9 +705,6 @@ class BoxedPlot:
 
     def add_crowdsource_point(self, id, label, x, y):
         # ID is the person plotting, label is the name of the point.
-        if label not in [p[0] for p in self.__points]:
-            return 1, "That person (" + label + ") has not plotted themself on that plot!"
-
         try:
             consent = False
             for (id, consent_label) in self.__crowdsourceable:
@@ -737,14 +743,27 @@ class BoxedPlot:
         updated_points = self.__points
         try:
             for label in self.__crowdsourced_points.keys():
-                x, y = self.lookup_label(label)[1]
+                point_index = -1
+                for i in range(len(updated_points)):
+                    if updated_points[i][0] == label:
+                        point_index = i
+                        break
+
+                if point_index != -1:
+                    x, y = self.lookup_label(label)[1]
+                else:
+                    x, y = 0, 0
+
                 l = len(self.__crowdsourced_points[label].items()) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
                     y += y2
-                for i in range(len(updated_points)):
-                    if updated_points[i][0] == label:
-                        updated_points[i] = (label, x / l, y / l, updated_points[i][3], updated_points[i][4])
+
+                if point_index != -1:
+                    updated_points[point_index] = (
+                    label, x / l, y / l, updated_points[point_index][3], updated_points[point_index][4])
+                else:
+                    updated_points.append((label, x / (l - 1), y / (l - 1), 0, 0))
             return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
@@ -1087,9 +1106,6 @@ class AlignmentChart:
 
     def add_crowdsource_point(self, id, label, x, y):
         # ID is the person plotting, label is the name of the point.
-        if label not in [p[0] for p in self.__points]:
-            return 1, "That person (" + label + ") has not plotted themself on that plot!"
-
         try:
             consent = False
             for (id, consent_label) in self.__crowdsourceable:
@@ -1129,14 +1145,27 @@ class AlignmentChart:
         updated_points = self.__points
         try:
             for label in self.__crowdsourced_points.keys():
-                x, y = self.lookup_label(label)[1]
+                point_index = -1
+                for i in range(len(updated_points)):
+                    if updated_points[i][0] == label:
+                        point_index = i
+                        break
+
+                if point_index != -1:
+                    x, y = self.lookup_label(label)[1]
+                else:
+                    x, y = 0, 0
+
                 l = len(self.__crowdsourced_points[label].items()) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
                     y += y2
-                for i in range(len(updated_points)):
-                    if updated_points[i][0] == label:
-                        updated_points[i] = (label, x / l, y / l, updated_points[i][3], updated_points[i][4])
+
+                if point_index != -1:
+                    updated_points[point_index] = (
+                    label, x / l, y / l, updated_points[point_index][3], updated_points[point_index][4])
+                else:
+                    updated_points.append((label, x / (l - 1), y / (l - 1), 0, 0))
             return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
@@ -1459,9 +1488,6 @@ class TrianglePlot:
 
     def add_crowdsource_point(self, id, label, x, y):
         # ID is the person plotting, label is the name of the point.
-        if label not in [p[0] for p in self.__points]:
-            return 1, "That person (" + label + ") has not plotted themself on that plot!"
-
         try:
             consent = False
             for (id, consent_label) in self.__crowdsourceable:
@@ -1501,14 +1527,27 @@ class TrianglePlot:
         updated_points = self.__points
         try:
             for label in self.__crowdsourced_points.keys():
-                x, y = self.lookup_label(label)[1]
+                point_index = -1
+                for i in range(len(updated_points)):
+                    if updated_points[i][0] == label:
+                        point_index = i
+                        break
+
+                if point_index != -1:
+                    x, y = self.lookup_label(label)[1]
+                else:
+                    x, y = 0, 0
+
                 l = len(self.__crowdsourced_points[label].items()) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
                     x += x2
                     y += y2
-                for i in range(len(updated_points)):
-                    if updated_points[i][0] == label:
-                        updated_points[i] = (label, x / l, y / l, updated_points[i][3], updated_points[i][4])
+
+                if point_index != -1:
+                    updated_points[point_index] = (
+                    label, x / l, y / l, updated_points[point_index][3], updated_points[point_index][4])
+                else:
+                    updated_points.append((label, x / (l - 1), y / (l - 1), 0, 0))
             return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
@@ -1699,9 +1738,6 @@ class RadarPlot:
 
     def add_crowdsource_point(self, id, label, vals):
         # ID is the person plotting, label is the name of the point.
-        if label not in [p[0] for p in self.__points]:
-            return 1, "That person (" + label + ") has not plotted themself on that plot!"
-
         try:
             consent = False
             for (id, consent_label) in self.__crowdsourceable:
@@ -1745,13 +1781,29 @@ class RadarPlot:
         try:
             updated_points = self.__points.copy()
             for label in self.__crowdsourced_points.keys():
-                vals = self.lookup_label(label)[1]
-                for (id, vals2) in self.__crowdsourced_points[label].items():
-                    vals = [sum(x) for x in zip(vals, vals2)]
-                vals = [v / (len(self.__crowdsourced_points[label].items()) + 1) for v in vals]
+                point_index = -1
                 for i in range(len(updated_points)):
                     if updated_points[i][0] == label:
-                        updated_points[i] = (label, vals)
+                        point_index = i
+                        break
+
+                if point_index != -1:
+                    vals = self.lookup_label(label)[1]
+                else:
+                    vals = [0 for _ in range(len(self.__labels))]
+                for (id, vals2) in self.__crowdsourced_points[label].items():
+                    vals = [sum(x) for x in zip(vals, vals2)]
+
+                l = len(self.__crowdsourced_points[label].items())
+                if point_index != -1:
+                    l += 1
+
+                vals = [v / l for v in vals]
+
+                if point_index != -1:
+                    updated_points[point_index] = (label, vals)
+                else:
+                    updated_points.append((label, vals))
             return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
