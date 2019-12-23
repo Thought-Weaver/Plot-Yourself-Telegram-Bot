@@ -1,7 +1,10 @@
-Patch Notes (11/28/2019):
+Patch Notes (12/22/2019):
 
 New Features:
 
--Added /mcp {plot_id} to display who has crowdsourced you where.
--Added /whoscrowdsourceable {plot_id} (/wcs) to display who can be crowdsourced on a plot.
--Improved /help!
+-You no longer have to plot an initial point for crowdsourcing.
+
+Bug Fixes:
+
+-You can no longer crowdsource yourself.
+-Cleaned up some stuff behind the scenes.
