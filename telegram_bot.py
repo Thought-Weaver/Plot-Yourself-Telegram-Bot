@@ -1975,6 +1975,7 @@ def plot_crowdsource_handler(bot, update, chat_data, args):
 
     send_message(bot, chat_id, result[1])
     telegram.ext.PicklePersistence.flush(pp)
+    show_plot_handler(bot, update, chat_data, [plot_id])
 
 
 def crowdsource_consent_handler(bot, update, chat_data, args):
@@ -2085,7 +2086,7 @@ def whos_crowdsourceable_handler(bot, update, chat_data, args):
     chat_id = update.message.chat.id
 
     if len(args) != 1:
-        send_message(bot, chat_id, "usage: /mycrowdsourcedpoints {plot_id}")
+        send_message(bot, chat_id, "usage: /whoscrowdsourceable {plot_id}")
         return
 
     try:
