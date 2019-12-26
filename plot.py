@@ -740,7 +740,7 @@ class BoxedPlot:
             return 0, "You have now consented to being crowdsourced for this plot."
 
     def update_points_with_crowdsource(self):
-        updated_points = self.__points
+        updated_points = self.__points.copy()
         try:
             for label in self.__crowdsourced_points.keys():
                 point_index = -1
@@ -1142,7 +1142,7 @@ class AlignmentChart:
             return 0, "You have now consented to being crowdsourced for this plot."
 
     def update_points_with_crowdsource(self):
-        updated_points = self.__points
+        updated_points = self.__points.copy()
         try:
             for label in self.__crowdsourced_points.keys():
                 point_index = -1
@@ -1524,7 +1524,7 @@ class TrianglePlot:
             return 0, "You have now consented to being crowdsourced for this plot."
 
     def update_points_with_crowdsource(self):
-        updated_points = self.__points
+        updated_points = self.__points.copy()
         try:
             for label in self.__crowdsourced_points.keys():
                 point_index = -1
