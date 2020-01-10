@@ -1947,7 +1947,7 @@ def plot_crowdsource_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "Plot ID must be an int, label must be a string, and vals must be floats!")
         return
 
-    if label == username:
+    if label == username.replace(" ", ""):
         send_message(bot, chat_id, "You cannot crowdsource yourself!")
         return
 
