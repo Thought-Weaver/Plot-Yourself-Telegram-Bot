@@ -75,9 +75,9 @@ class Plot:
 
         X = [p[1] for p in updated_points]
         Y = [p[2] for p in updated_points]
-        err_X = [p[3] for p in self.__points]
-        err_Y = [p[4] for p in self.__points]
-        labels = [p[0] for p in self.__points]
+        err_X = [p[3] for p in updated_points]
+        err_Y = [p[4] for p in updated_points]
+        labels = [p[0] for p in updated_points]
         colors = [(color_hash[0] / 255, color_hash[1] / 255, color_hash[2] / 255)
                   for color_hash in [ColorHash(label).rgb for label in labels]]
 
@@ -345,15 +345,17 @@ class Plot:
         try:
             for label in self.__crowdsourced_points.keys():
                 point_index = -1
-                for i in range(len(updated_points)):
+                for i in range(len(self.__points)):
                     if updated_points[i][0].replace(" ", "") == label:
                         point_index = i
                         break
 
                 if point_index != -1:
-                    x, y = self.__points[point_index][1], self.__points[point_index][2]
+                    x = self.__points[point_index][1]
+                    y = self.__points[point_index][2]
                 else:
-                    x, y = 0, 0
+                    x = 0
+                    y = 0
 
                 l = len(self.__crowdsourced_points[label]) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
@@ -361,9 +363,7 @@ class Plot:
                     y += y2
 
                 if point_index != -1:
-                    # x_err = updated_points[point_index][3]
-                    # y_err = updated_points[point_index][4]
-                    updated_points[point_index] = (label, x / l, y / l, 0, 0)
+                    updated_points[point_index] = (label, x / l, y / l, updated_points[point_index][3], updated_points[point_index][4])
                 else:
                     updated_points.append((label, x / (l - 1), y / (l - 1), 0, 0))
             return updated_points
@@ -746,15 +746,17 @@ class BoxedPlot:
         try:
             for label in self.__crowdsourced_points.keys():
                 point_index = -1
-                for i in range(len(updated_points)):
+                for i in range(len(self.__points)):
                     if updated_points[i][0].replace(" ", "") == label:
                         point_index = i
                         break
 
                 if point_index != -1:
-                    x, y = self.__points[point_index][1], self.__points[point_index][2]
+                    x = self.__points[point_index][1]
+                    y = self.__points[point_index][2]
                 else:
-                    x, y = 0, 0
+                    x = 0
+                    y = 0
 
                 l = len(self.__crowdsourced_points[label]) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
@@ -762,9 +764,7 @@ class BoxedPlot:
                     y += y2
 
                 if point_index != -1:
-                    # x_err = updated_points[point_index][3]
-                    # y_err = updated_points[point_index][4]
-                    updated_points[point_index] = (label, x / l, y / l, 0, 0)
+                    updated_points[point_index] = (label, x / l, y / l, updated_points[point_index][3], updated_points[point_index][4])
                 else:
                     updated_points.append((label, x / (l - 1), y / (l - 1), 0, 0))
             return updated_points
@@ -1149,15 +1149,17 @@ class AlignmentChart:
         try:
             for label in self.__crowdsourced_points.keys():
                 point_index = -1
-                for i in range(len(updated_points)):
+                for i in range(len(self.__points)):
                     if updated_points[i][0].replace(" ", "") == label:
                         point_index = i
                         break
 
                 if point_index != -1:
-                    x, y = self.__points[point_index][1], self.__points[point_index][2]
+                    x = self.__points[point_index][1]
+                    y = self.__points[point_index][2]
                 else:
-                    x, y = 0, 0
+                    x = 0
+                    y = 0
 
                 l = len(self.__crowdsourced_points[label]) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
@@ -1165,9 +1167,7 @@ class AlignmentChart:
                     y += y2
 
                 if point_index != -1:
-                    # x_err = updated_points[point_index][3]
-                    # y_err = updated_points[point_index][4]
-                    updated_points[point_index] = (label, x / l, y / l, 0, 0)
+                    updated_points[point_index] = (label, x / l, y / l, updated_points[point_index][3], updated_points[point_index][4])
                 else:
                     updated_points.append((label, x / (l - 1), y / (l - 1), 0, 0))
             return updated_points
@@ -1532,15 +1532,17 @@ class TrianglePlot:
         try:
             for label in self.__crowdsourced_points.keys():
                 point_index = -1
-                for i in range(len(updated_points)):
+                for i in range(len(self.__points)):
                     if updated_points[i][0].replace(" ", "") == label:
                         point_index = i
                         break
 
                 if point_index != -1:
-                    x, y = self.__points[point_index][1], self.__points[point_index][2]
+                    x = self.__points[point_index][1]
+                    y = self.__points[point_index][2]
                 else:
-                    x, y = 0, 0
+                    x = 0
+                    y = 0
 
                 l = len(self.__crowdsourced_points[label]) + 1
                 for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
@@ -1548,9 +1550,7 @@ class TrianglePlot:
                     y += y2
 
                 if point_index != -1:
-                    # x_err = updated_points[point_index][3]
-                    # y_err = updated_points[point_index][4]
-                    updated_points[point_index] = (label, x / l, y / l, 0, 0)
+                    updated_points[point_index] = (label, x / l, y / l, updated_points[point_index][3], updated_points[point_index][4])
                 else:
                     updated_points.append((label, x / (l - 1), y / (l - 1), 0, 0))
             return updated_points
@@ -1783,32 +1783,31 @@ class RadarPlot:
             return 0, "You have now consented to being crowdsourced for this plot."
 
     def update_points_with_crowdsource(self):
+        updated_points = self.__points.copy()
         try:
-            updated_points = self.__points.copy()
             for label in self.__crowdsourced_points.keys():
                 point_index = -1
-                for i in range(len(updated_points)):
-                    if updated_points[i][0] == label:
+                for i in range(len(self.__points)):
+                    if updated_points[i][0].replace(" ", "") == label:
                         point_index = i
                         break
 
                 if point_index != -1:
-                    vals = self.lookup_label(label)[1]
+                    x = self.__points[point_index][1]
+                    y = self.__points[point_index][2]
                 else:
-                    vals = [0 for _ in range(len(self.__labels))]
-                for (id, vals2) in self.__crowdsourced_points[label].items():
-                    vals = [sum(x) for x in zip(vals, vals2)]
+                    x = 0
+                    y = 0
 
-                l = len(self.__crowdsourced_points[label].items())
-                if point_index != -1:
-                    l += 1
-
-                vals = [v / l for v in vals]
+                l = len(self.__crowdsourced_points[label]) + 1
+                for (id, (x2, y2)) in self.__crowdsourced_points[label].items():
+                    x += x2
+                    y += y2
 
                 if point_index != -1:
-                    updated_points[point_index] = (label, vals)
+                    updated_points[point_index] = (label, x / l, y / l, updated_points[point_index][3], updated_points[point_index][4])
                 else:
-                    updated_points.append((label, vals))
+                    updated_points.append((label, x / (l - 1), y / (l - 1), 0, 0))
             return updated_points
         except AttributeError:
             self.__crowdsourced_points = {}
