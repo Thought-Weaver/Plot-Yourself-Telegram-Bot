@@ -1845,7 +1845,7 @@ def radar_plot_handler(bot, update, chat_data, args):
         send_message(bot, chat_id, "You have created an empty plot (" + str(max_key + 1) + ") successfully!")
 
     plot = RadarPlot(" ".join(plot_args.get("title")) if plot_args.get("title") is not None else None,
-                plot_args.get("labels") if plot_args.get("labels") is not None else [""],
+                     (plot_args.get("labels")[::-1][-1:] + plot_args.get("labels")[::-1][:-1]) if plot_args.get("labels") is not None else [""],
                 (username, user.id),
                 max_key + 1)
     chat_data["plots"][max_key + 1] = plot
